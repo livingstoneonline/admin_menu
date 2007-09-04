@@ -37,7 +37,7 @@ function admin_menu_block($op = 'list', $delta = 0) {
         );
       }
       foreach ($css_files as $css_file) {
-        theme_add_style($css_file['file'], 'all');
+        drupal_set_html_head(theme('stylesheet_import', base_path() . $css_file['file']));
       }
       
       // IE fix
