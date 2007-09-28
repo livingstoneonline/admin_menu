@@ -2,6 +2,10 @@
 
 Admin Menu x.x-x.x, xxxx-xx-xx
 ------------------------------
+
+
+Admin Menu 5.x-1.x, xxxx-xx-xx
+------------------------------
 #177582 by sun: Fixed bluebreeze theme compatibility.
 
 
