@@ -1,6 +1,7 @@
 <?php
 // $Id$
 
+
 /**
  * Implementation of hook_help().
  */
@@ -36,11 +37,11 @@ function admin_menu_menu($may_cache) {
   drupal_add_css($path .'/admin_menu.css', 'module', 'screen', false);
   
   // IE6 fix.
-  $ie_header  = '<!--[if lt IE 7]>';
-  $ie_header .= '<script type="text/javascript" src="' . base_path() . $path .'/admin_menu.js' . '"></script>';
+  $ie_header = '<!--[if lt IE 7]>';
+  $ie_header .= '<script type="text/javascript" src="'. base_path() . $path .'/admin_menu.js'.'"></script>';
   $ie_header .= '<![endif]-->';
   drupal_set_html_head($ie_header);
-
+  
   return $items;
 }
 
@@ -89,7 +90,7 @@ function &admin_menu_get_menu($mid_admin = 5) {
     $_admin_menu = unserialize($cache->data);
   }
   else {
-    require_once(drupal_get_path('module', 'admin_menu') .'/admin_menu.inc');
+    require_once drupal_get_path('module', 'admin_menu') .'/admin_menu.inc';
     $_admin_menu = admin_menu_build($mid_admin);
     cache_set($cid, 'cache_menu', serialize($_admin_menu), time() + (60 * 60 * 24));
   }
@@ -151,11 +152,11 @@ function admin_menu_item_link($mid) {
   }
   $item = $_admin_menu[$mid];
   $link_item = $item;
-
+  
   while ($link_item['type'] & MENU_LINKS_TO_PARENT) {
     $link_item = menu_get_item($link_item['pid']);
   }
-
+  
   // Display extra information about menu items if enabled (devel).
   if ($display_option) {
     if ($display_option == 'mid') {
@@ -176,7 +177,7 @@ function admin_menu_item_link($mid) {
  * Generate the HTML representing a given menu item ID.
  *
  * Allows HTML in links.
- * 
+ *
  * @see theme_menu_item_link()
  */
 function theme_admin_menu_item_link($item, $link_item) {
@@ -188,10 +189,10 @@ function theme_admin_menu_item_link($item, $link_item) {
  */
 function _admin_menu_sort($a, $b) {
   $_admin_menu = admin_menu_get_menu();
-
+  
   $a = $_admin_menu[$a];
   $b = $_admin_menu[$b];
-
+  
   if ($a['weight'] < $b['weight']) {
     return -1;
   }
@@ -208,7 +209,7 @@ function _admin_menu_sort($a, $b) {
 
 /**
  * Add a custom menu item.
- * 
+ *
  * @param int $pid
  *   The parent menu item id.
  * @param array $item
@@ -240,7 +241,7 @@ function admin_menu_add_item(&$_admin_menu, $pid, $item) {
 function admin_menu_admin_menu(&$admin_menu, $may_cache) {
   if (!$may_cache) {
     // Add user counter.
-    $mid_admin = $admin_menu['index']['admin'];
+    $mid_admin  = $admin_menu['index']['admin'];
     $count_anon = db_result(db_query("SELECT COUNT(uid) FROM {sessions} WHERE uid = 0 AND timestamp >= %d", time() - 30 * 60));
     $count_auth = db_result(db_query("SELECT COUNT(DISTINCT uid) FROM {sessions} WHERE uid > 0 AND timestamp >= %d", time() - 30 * 60));
     $icon_users = '<img src="'. base_path() . drupal_get_path('module', 'admin_menu') .'/icon_users.png" width="16" height="15" alt="'. t('Current anonymous / authenticated users') .'" />';
@@ -320,3 +321,4 @@ if (module_exists('devel') && !function_exists('devel_admin_menu')) {
     }
   }
 }
+

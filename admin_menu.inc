@@ -1,13 +1,14 @@
 <?php
 // $Id$
 
+
 /**
  * Retrieves, sclices and returns the menu tree below /admin.
  */
 function admin_menu_build($mid_admin) {
   global $_menu;
   $_admin_menu = array();
-
+  
   // Temporary access permissions fix for root menu items until #126621 is committed to core.
   foreach ($_menu['items'][$mid_admin]['children'] as $key => $parent) {
     if ($_menu['items'][$parent]['access'] != false || !isset($_menu['items'][$parent]['children'])) {
@@ -55,18 +56,18 @@ function _admin_menu_get_children(&$_admin_menu, &$item) {
       }
       // check type
       $item_is_visible = $_menu['items'][$child]['type'] & (MENU_VISIBLE_IN_TREE | MENU_IS_LOCAL_TASK);
-
+      
       // create the child item if it is accessible and visible
       // Additional condition to hide items linking to parent:
       //   && !($_menu['items'][$child]['type'] & MENU_LINKS_TO_PARENT)
       if ($item_is_accessible && $item_is_visible) {
         $_admin_menu[$child] = $_menu['items'][$child];
-
+        
         // recurse to child menu items
         if (isset($_menu['items'][$child]['children'])) {
           _admin_menu_get_children($_admin_menu, $_admin_menu[$child]);
         }
-
+        
         // remove this child item if it is visible in navigation
         unset($_menu['visible'][$child]);
       }
@@ -110,7 +111,7 @@ function admin_menu_adjust_items(&$_admin_menu) {
   
   // remove 'By task' menu item
   admin_menu_remove_item($_admin_menu, 'admin/by-task');
-
+  
   admin_menu_add_item($_admin_menu, $mid_icon, array('title' => t('Run cron'), 'path' => 'admin/logs/status/run-cron', 'weight' => 50));
   if ($user->uid == 1) {
     admin_menu_add_item($_admin_menu, $mid_icon, array('title' => t('Run updates'), 'path' => 'update.php', 'weight' => 50));
@@ -144,7 +145,7 @@ function admin_menu_adjust_items(&$_admin_menu) {
       'class' => 'admin_menu-action admin_menu-logout',
     ));
   }
-
+  
   // add create content_type items to Content management > Content
   $mid_node_add = $_menu['path index']['node/add'];
   $mid_content = $_menu['path index']['admin/content/node'];
@@ -154,7 +155,7 @@ function admin_menu_adjust_items(&$_admin_menu) {
 /**
  * Recursively copy menu items from a source parent menu item to a target menu
  * item.
- * 
+ *
  * @param _admin_menu
  *   The sliced administration menu array.
  * @param source_pid
@@ -202,7 +203,7 @@ function admin_menu_copy_items(&$_admin_menu, $source_pid, $target_pid, $title =
 
 /**
  * Moves the child pointer for a menu item to a new parent.
- * 
+ *
  * @param _admin_menu
  *      The sliced administration menu.
  * @param mid
@@ -229,7 +230,7 @@ function admin_menu_move_item(&$_admin_menu, $mid, $pid) {
 
 /**
  * Removes the child pointer for a menu item.
- * 
+ *
  * @param _admin_menu
  *      The sliced administration menu.
  * @param path
@@ -259,6 +260,6 @@ function admin_menu_remove_item(&$_admin_menu, $path) {
  * @ingroup themeable
  */
 function theme_admin_menu_icon() {
-  return '<img class="admin_menu-icon" src="'. check_url(base_path() . 'misc/favicon.ico') .'" width="16" height="16" alt="" />';
+  return '<img class="admin_menu-icon" src="'. check_url(base_path() .'misc/favicon.ico') .'" width="16" height="16" alt="" />';
 }
 
