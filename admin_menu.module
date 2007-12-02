@@ -1,6 +1,15 @@
 <?php
 // $Id$
 
+/**
+ * @file
+ * Renders a menu tree for administrative purposes as dropdown menu at the top
+ * of the window.
+ *
+ * Note: Most theme-functions in Administration Menu are not invoked via theme(),
+ * because we try to keep this module as fast as possible and chances are very
+ * small that someone wants to override those functions.
+ */
 
 /**
  * Implementation of hook_help().
@@ -22,23 +31,23 @@ function admin_menu_perm() {
 /**
  * Implementation of hook_menu().
  *
- * PHP-only based themes like chameleon load and output scripts and stylesheets
- * in front of theme_closure(), so we ensure Admin menu's styles and scripts are
- * loaded on all pages via hook_menu().
+ * We can't move this into admin_menu_footer(), because PHP-only based themes
+ * like chameleon load and output scripts and stylesheets in front of
+ * theme_closure(), so we ensure Admin menu's styles and scripts are loaded on
+ * all pages via hook_menu().
  */
 function admin_menu_menu($may_cache) {
   $items = array();
-  
   if (!user_access('access administration menu') || $may_cache) {
     return $items;
   }
   
   $path = drupal_get_path('module', 'admin_menu');
-  drupal_add_css($path .'/admin_menu.css', 'module', 'screen', false);
+  drupal_add_css($path .'/admin_menu.css', 'module', 'screen', FALSE);
   
   // IE6 fix.
-  $ie_header = '<!--[if lt IE 7]>';
-  $ie_header .= '<script type="text/javascript" src="'. base_path() . $path .'/admin_menu.js'.'"></script>';
+  $ie_header  = '<!--[if lt IE 7]>';
+  $ie_header .= '<script type="text/javascript" src="'. base_path() . $path .'/admin_menu.js' . '"></script>';
   $ie_header .= '<![endif]-->';
   drupal_set_html_head($ie_header);
   
@@ -52,17 +61,17 @@ function admin_menu_menu($may_cache) {
  * theme-specific stylesheets that may be applied to layout blocks. We now
  * output Admin menu in the footer to circumvent this.
  */
-function admin_menu_footer($main) {
+function admin_menu_footer($main = 0) {
   if (!user_access('access administration menu')) {
     return;
   }
   global $_menu;
   
-  // get path id of /q=admin, which we suppose to be the root of admin menu
+  // Get item id of /q=admin, which we suppose to be the root for admin menu.
   $mid_admin = $_menu['path index']['admin'];
   $_admin_menu =& admin_menu_get_menu($mid_admin);
   
-  // Allow other modules to integrate with admin_menu.
+  // Allow other modules to integrate with admin_menu (uncached).
   foreach (module_implements('admin_menu') as $module) {
     $function = $module .'_admin_menu';
     $function($_admin_menu, FALSE);
@@ -74,6 +83,16 @@ function admin_menu_footer($main) {
   return $content;
 }
 
+/**
+ * Return Administration Menu from cache or rebuild it.
+ *
+ * @param int $mid_admin
+ *   The menu item id to use for the administration menu.
+ *
+ * @return array
+ *   An array containing a complete menu structure of all cached administration
+ *   menu items.
+ */
 function &admin_menu_get_menu($mid_admin = 5) {
   static $_admin_menu;
   
@@ -101,26 +120,39 @@ function &admin_menu_get_menu($mid_admin = 5) {
 /**
  * Generate the HTML for a menu tree.
  *
- * @param $pid
- *   The parent id of the menu.
+ * @param int $pid
+ *   The menu item id to use for the administration menu.
  *
- * @ingroup themeable
+ * @return string
+ *   The complete, rendered administration menu.
  */
 function theme_admin_menu_tree($pid = 1) {
   $_admin_menu = admin_menu_get_menu();
   $output = '';
   
   if (isset($_admin_menu[$pid]) && $_admin_menu[$pid]['children']) {
+    // Since we allow other modules to add items to admin menu, we need to sort
+    // all items (again).
     usort($_admin_menu[$pid]['children'], '_admin_menu_sort');
     foreach ($_admin_menu[$pid]['children'] as $mid) {
-      $children = isset($_admin_menu[$mid]['children']) ? $_admin_menu[$mid]['children'] : null;
+      $children = isset($_admin_menu[$mid]['children']) ? $_admin_menu[$mid]['children'] : NULL;
       $output .= theme_admin_menu_item($mid, theme_admin_menu_tree($mid), count($children) == 0);
     }
   }
   return $output ? "<ul>". $output ."</ul>" : '';
 }
 
-function theme_admin_menu_item($mid, $children = '', $leaf = true) {
+/**
+ * Generate the HTML output for a single menu item.
+ *
+ * @param int $mid
+ *   The menu id of the item.
+ * @param string $children
+ *   A string containing any rendered child items of this menu.
+ * @param bool $leaf
+ *   A boolean indicating whether this menu item is a leaf.
+ */
+function theme_admin_menu_item($mid, $children = '', $leaf = TRUE) {
   $_admin_menu = admin_menu_get_menu();
   
   $class = array();
@@ -178,6 +210,11 @@ function admin_menu_item_link($mid) {
  *
  * Allows HTML in links.
  *
+ * @param $item
+ *   The menu item to render.
+ * @param $link_item
+ *   The menu item which should be used to find the correct path.
+ *
  * @see theme_menu_item_link()
  */
 function theme_admin_menu_item_link($item, $link_item) {
@@ -210,11 +247,15 @@ function _admin_menu_sort($a, $b) {
 /**
  * Add a custom menu item.
  *
+ * @param array $_admin_menu
+ *   An array containing the complete administration menu structure, passed by
+ *   reference.
  * @param int $pid
  *   The parent menu item id.
  * @param array $item
- *   An menu item array for the menu system. May contain the key 'weight' with
- *   a negative value to prepend the new item to existing children.
+ *   An menu item array for the menu system. May contain the key 'weight' to
+ *   adjust the item's weight. You can use Devel module to display additional
+ *   information about menu items.
  *
  * @return int
  *   The id of the new menu item.
@@ -238,9 +279,20 @@ function admin_menu_add_item(&$_admin_menu, $pid, $item) {
   return $id;
 }
 
+/**
+ * Implementation of hook_admin_menu().
+ *
+ * @param array $admin_menu
+ *   An array containing the complete administration menu structure, passed by
+ *   reference.
+ * @param bool $may_cache
+ *   Whether changes will be cached. If new menu items contain dynamic
+ *   information, such as query strings or user-related data, these should be
+ *   added on each page request ($may_cache = FALSE).
+ */
 function admin_menu_admin_menu(&$admin_menu, $may_cache) {
   if (!$may_cache) {
-    // Add user counter.
+    // Add anonymous/authenticated users counter.
     $mid_admin  = $admin_menu['index']['admin'];
     $count_anon = db_result(db_query("SELECT COUNT(uid) FROM {sessions} WHERE uid = 0 AND timestamp >= %d", time() - 30 * 60));
     $count_auth = db_result(db_query("SELECT COUNT(DISTINCT uid) FROM {sessions} WHERE uid > 0 AND timestamp >= %d", time() - 30 * 60));
@@ -255,19 +307,21 @@ function admin_menu_admin_menu(&$admin_menu, $may_cache) {
 }
 
 /**
- * Implementation of hook_form_alter() to extend devel.module.
+ * Implementation of hook_form_alter().
+ *
+ * Extends Devel module with Administration Menu developer settings.
  */
 function admin_menu_form_alter($form_id, &$form) {
   if ($form_id == 'devel_admin_settings') {
-    // shift system_settings_form buttons
+    // Shift system_settings_form buttons.
     $weight = $form['buttons']['#weight'];
     $form['buttons']['#weight'] = $weight + 1;
     
     $form['admin_menu'] = array(
       '#type' => 'fieldset',
       '#title' => t('Administration Menu settings'),
-      '#collapsible' => true,
-      '#collapsed' => true,
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
     );
     $display_options = array('mid', 'weight', 'pid');
     $display_options = array(0 => t('None'), 'id' => t('Id'), 'weight' => t('Weight'), 'pid' => t('Parent id'));
@@ -287,6 +341,13 @@ function admin_menu_form_alter($form_id, &$form) {
   }
 }
 
+/**
+ * Implementation of hook_admin_menu() for Devel module (temporary).
+ *
+ * - Adds most used functions 'empty cache' and 'variable editor' to the menu in
+ * Administration Menu's icon.
+ * - Adds links to switch to a different user to the logout button.
+ */
 if (module_exists('devel') && !function_exists('devel_admin_menu')) {
   function devel_admin_menu(&$admin_menu, $may_cache) {
     $access_devel = user_access('access devel information');
