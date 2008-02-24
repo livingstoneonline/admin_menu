@@ -8,6 +8,11 @@ Admin Menu 5.x-2.x, xxxx-xx-xx
 ------------------------------
 
 
+Admin Menu 5.x-2.4, 2008-02-24
+------------------------------
+#214725 by sun: Fixed wrong CSS id in admin_menu.js (missed in 5.x-2.3).
+
+
 Admin Menu 5.x-2.3, 2008-02-24
 ------------------------------
 #214725 by sun: Fixed CSS id and classes should not contain underscores.
