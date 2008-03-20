@@ -7,6 +7,7 @@ Admin Menu x.x-x.x, xxxx-xx-xx
 Admin Menu 5.x-2.x, xxxx-xx-xx
 ------------------------------
 #198240 by sun: Fixed admin_menu displayed in print output.
+#234444 by smk: Fixed favicon issue for the "admin" menu.
 
 
 Admin Menu 5.x-2.4, 2008-02-24
