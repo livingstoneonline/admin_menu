@@ -22,17 +22,13 @@ None.
 
 -- INSTALLATION --
 
-* Copy admin_menu module to your modules directory and enable it on the admin
-  modules page.
+* Install as usual, see http://drupal.org/node/70151 for further information.
 
 
 -- CONFIGURATION --
 
-* Configure module settings in administer -> Site configuration ->
-  Administration Menu.
-
-* Go to Administer -> User management -> Access control and assign permissions
-  for Drupal Administration Menu:
+* Configure user permissions in administer >> User management >> Access control
+  >> Drupal Administration Menu:
 
   - access administration menu: Displays Drupal Administration Menu.
 
@@ -43,6 +39,9 @@ None.
   depend on the actual permissions of a user.  For example, if a user does not
   have the permission 'administer access control' and 'administer users', the
   whole 'User management' menu item will not be displayed.
+
+* Customize module settings in administer >> Site configuration >> Administration
+  Menu.
 
 
 -- CUSTOMIZATION --
@@ -88,6 +87,15 @@ body #admin-menu { font-size: 10px; }
 
 
 -- FAQ --
+
+Q: When admin_menu is enabled, plenty of blank space is added to the bottom of
+   my theme. Why?
+
+A: This is caused by a long list of links to module issue queues at Drupal.org.
+   Just go to administer >> User management >> Access control >> admin_menu and
+   disable the permission "display drupal links" for your or all roles.
+   Since uid 1 always has all permissions, this link list cannot be disabled
+   for uid 1.
 
 Q: After upgrading to 5.x-2.x, admin_menu disappeared. Why?
 
