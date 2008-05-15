@@ -198,6 +198,72 @@ function admin_menu_adjust_items(&$_admin_menu) {
   }
   $mid_node_add = $_menu['path index']['node/add'];
   admin_menu_copy_items($_admin_menu, $mid_node_add, $mid_content, t('Add !title'));
+
+  // Add 'Edit <content_type>' menu items to Content management > Content types.
+  if (module_exists('content') && user_access('administer content types')) {
+    $mid_content_types = $_admin_menu['index']['admin/content/types'];
+    $types = node_get_types();
+    $names = node_get_types('names');
+    foreach ($names as $key => $name) {
+      $type = $types[$key];
+      if (function_exists($type->module .'_form')) {
+        admin_menu_add_item($_admin_menu, $mid_content_types, array(
+          'title' => t('Edit !name', array('!name' => $name)),
+          'path' => 'admin/content/types/'. str_replace('_', '-', $type->type),
+          'weight' => -5,
+        ));
+      }
+    }
+  }
+
+  // Add 'Edit <view>' menu items to Site building > Views.
+  if (module_exists('views') && user_access('administer views')) {
+    $mid_views_list = $_admin_menu['index']['admin/build/views/list'];
+    $_admin_menu[$mid_views_list]['weight'] = -10;
+    $mid_views = $_admin_menu['index']['admin/build/views'];
+    $result = db_query("SELECT name FROM {view_view} ORDER BY name");
+    while ($view = db_fetch_object($result)) {
+      admin_menu_add_item($_admin_menu, $mid_views, array(
+        'title' => t('Edit !name', array('!name' => $view->name)),
+        'path' => "admin/build/views/$view->name/edit",
+        'weight' => -5,
+      ));
+    }
+  }
+
+  // Add 'Edit <panel>' menu items to Panels.
+  $modules = array(
+    'panels_page' => array(
+      'path' => 'admin/panels/panel-page/!name/edit/content',
+      'parent' => 'admin/panels/panel-page',
+      'perm' => 'create panel-pages',
+    ),
+    'panels_mini' => array(
+      'path' => 'admin/panels/panel-mini/!name/edit/content',
+      'parent' => 'admin/panels/panel-mini',
+      'perm' => 'create mini panels',
+    ),
+    'panels_views' => array(
+      'path' => 'admin/panels/views/edit/!name',
+      'parent' => 'admin/panels/views',
+      'perm' => 'administer panel views',
+    ),
+  );
+  foreach ($modules as $module => $attribs) {
+    if (module_exists($module) && user_access($attribs['perm'])) {
+      $mid_panels = $_admin_menu['index'][$attribs['parent']];
+      $function = $module .'_load_all';
+      foreach ($function() as $panel) {
+        if (empty($panel->disabled)) {
+          admin_menu_add_item($_admin_menu, $mid_panels, array(
+            'title' => t('Edit !name', array('!name' => $panel->name)),
+            'path' => strtr($attribs['path'], array('!name' => $panel->name)),
+            'weight' => -5,
+          ));
+        }
+      }
+    }
+  }
 }
 
 /**
