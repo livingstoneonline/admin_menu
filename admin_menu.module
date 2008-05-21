@@ -66,8 +66,14 @@ function admin_menu_menu($may_cache) {
       'callback arguments' => array('admin_menu_theme_settings'),
       'access' => user_access('administer site configuration'),
     );
+    $items[] = array(
+      'path' => 'admin_menu/toggle-modules',
+      'callback' => 'admin_menu_toggle_modules',
+      'access' => user_access('administer site configuration'),
+      'type' => MENU_CALLBACK,
+    );
   }
-  elseif (!$may_cache && user_access('access administration menu')) {
+  elseif (user_access('access administration menu')) {
     $path = drupal_get_path('module', 'admin_menu');
     drupal_add_css($path .'/admin_menu.css', 'module', 'all', FALSE);
     drupal_add_js($path .'/admin_menu.js');
@@ -403,5 +409,30 @@ if (module_exists('devel') && !function_exists('devel_admin_menu')) {
       }
     }
   }
+}
+
+/**
+ * Menu callback to enable/disable developer modules.
+ *
+ * This saves up to 150ms on each uncached page request. Not much, but
+ * on larger Drupal sites this is actually a 10% performance increase.
+ */
+function admin_menu_toggle_modules() {
+  $current_state = variable_get('admin_menu_devel_modules_enabled', NULL);
+  if (isset($current_state)) {
+    // Re-enable modules that were enabled before.
+    module_enable($current_state);
+    variable_del('admin_menu_devel_modules_enabled');
+  }
+  else {
+    // Allow site admins to override this variable via settings.php.
+    $devel_modules = variable_get('admin_menu_devel_modules', array('cache_disable', 'coder', 'debug', 'delete_all', 'demo', 'devel', 'devel_node_access', 'macro', 'form_controller', 'imagecache_ui', 'journal', 'trace', 'util', 'views_ui', 'views_theme_wizard'));
+    // Store currently enabled modules in a variable.
+    $devel_modules = array_intersect(module_list(FALSE, FALSE), $devel_modules);
+    variable_set('admin_menu_devel_modules_enabled', $devel_modules);
+    // Disable developer modules.
+    module_disable($devel_modules);
+  }
+  drupal_goto(referer_uri());
 }
 

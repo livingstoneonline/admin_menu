@@ -151,7 +151,18 @@ function admin_menu_adjust_items(&$_admin_menu) {
   if ($user->uid == 1) {
     admin_menu_add_item($_admin_menu, $mid_icon, array('title' => t('Run updates'), 'path' => $base_url .'/update.php', 'weight' => 50));
   }
-  
+
+  // Add developer modules toggle link.
+  if (user_access('administer site configuration')) {
+    $mid_icon = $_admin_menu['index']['admin_menu_icon'];
+    $current_state = variable_get('admin_menu_devel_modules_enabled', NULL);
+    admin_menu_add_item($_admin_menu, $mid_icon, array(
+      'title' => isset($current_state) ? t('Enable developer modules') : t('Disable developer modules'),
+      'path' => 'admin_menu/toggle-modules',
+      'weight' => 88,
+    ));
+  }
+
   // Add links to drupal.org.
   if (user_access('display drupal links')) {
     $mid_drupal = admin_menu_add_item($_admin_menu, $mid_icon, array('title' => t('Drupal.org'), 'path' => 'http://drupal.org', 'weight' => 100));
