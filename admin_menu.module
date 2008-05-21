@@ -412,6 +412,29 @@ if (module_exists('devel') && !function_exists('devel_admin_menu')) {
 }
 
 /**
+ * Clear the cached admin menu tree.
+ */
+function admin_menu_clear_cache() {
+  // cache_clear_all() does not support a leading wildcard.
+  db_query("DELETE FROM {cache_menu} WHERE cid LIKE '%%:admin_menu'");
+}
+
+/**
+ * Implementation of hook_panels_cache().
+ *
+ * We're misusing the panels_cache hook a bit: instead of returning information
+ * about a caching implementation, we simply check if the current request has a
+ * POST payload and clear our cache.
+ * This can easily be seen as a hack, as it will happen way too often when
+ * working on the panels admin pages.
+ */
+function admin_menu_panels_cache() {
+  if (!empty($_POST)) {
+    admin_menu_clear_cache();
+  }
+}
+
+/**
  * Menu callback to enable/disable developer modules.
  *
  * This saves up to 150ms on each uncached page request. Not much, but

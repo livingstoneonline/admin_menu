@@ -6,6 +6,8 @@ Admin Menu x.x-x.x, xxxx-xx-xx
 
 Admin Menu 5.x-2.x, xxxx-xx-xx
 ------------------------------
+#240862 by smk-ka: Fixed stale menu after adding/deleting content-types, Views,
+  and Panels.
 by sun: Added menu callback to disable/enable developer modules.
 #240862 by smk-ka, sun: Added edit links for content-types, Views, and Panels.
 #251341 by sun: Added docs about display drupal links permission.
