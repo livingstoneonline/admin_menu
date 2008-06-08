@@ -77,7 +77,14 @@ function admin_menu_menu($may_cache) {
     $path = drupal_get_path('module', 'admin_menu');
     drupal_add_css($path .'/admin_menu.css', 'module', 'all', FALSE);
     drupal_add_js($path .'/admin_menu.js');
-    drupal_add_js(array('admin_menu_margin_top' => variable_get('admin_menu_margin_top', 1)), 'setting');
+
+    drupal_add_js(array('admin_menu' => array('margin_top' => variable_get('admin_menu_margin_top', 1))), 'setting');
+    if ($_GET['q'] == 'admin/build/menu') {
+      drupal_add_js(array('admin_menu' => array('tweak_menu' => variable_get('admin_menu_tweak_menu', 1))), 'setting');
+    }
+    else if ($_GET['q'] == 'admin/build/modules') {
+      drupal_add_js(array('admin_menu' => array('tweak_modules' => variable_get('admin_menu_tweak_modules', 1))), 'setting');
+    }
   }
   return $items;
 }
@@ -92,6 +99,25 @@ function admin_menu_theme_settings() {
     '#default_value' => variable_get('admin_menu_margin_top', 1),
     '#description' => t('If this setting is disabled, some absolute or fixed positioned page elements may be covered by Administration Menu.'),
   );
+  $form['tweaks'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Drupal Administration Tweaks'),
+  );
+  $form['tweaks']['admin_menu_tweak_menu'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Collapse menus in menu administration'),
+    '#default_value' => variable_get('admin_menu_tweak_menu', 1),
+    '#description' => t('If enabled, menu containers on the <a href="!menu-url">Site building &raquo; Menus</a> page will be collapsed like fieldsets.', array('!menu-url' => url('admin/build/menu'))),
+  );
+  $form['tweaks']['admin_menu_tweak_modules'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Collapse fieldsets on modules page'),
+    '#default_value' => variable_get('admin_menu_tweak_modules', 1),
+    '#description' => t('If enabled, fieldsets on the <a href="!modules-url">Site building &raquo; Modules</a> page will be initially collapsed.', array('!modules-url' => url('admin/build/modules'))),
+  );
+  if (module_exists('util')) {
+    $form['tweaks']['admin_menu_tweak_modules']['#description'] .= '<br /><strong>'. t('If you installed Utility module for this purpose, you can safely uninstall it now!') .'</strong>';
+  }
   return system_settings_form($form);
 }
 

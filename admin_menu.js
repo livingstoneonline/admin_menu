@@ -2,8 +2,24 @@
 
 $(document).ready(function() {
   // Apply margin-top if enabled; directly applying marginTop doesn't work in IE.
-  if (Drupal.settings.admin_menu_margin_top == 1) {
+  if (Drupal.settings.admin_menu.margin_top) {
     $('body').addClass('admin-menu');
+  }
+
+  // Collapse fieldsets on Modules page.
+  if (Drupal.settings.admin_menu.tweak_modules) {
+    $('[id^="system-modules"] fieldset:not(.collapsed)').addClass('collapsed');
+  }
+
+  // Collapse menus on menu administration page.
+  if (Drupal.settings.admin_menu.tweak_menu) {
+    $('div.box:not(.admin-menu-menu-processed)').each(function() {
+      $(this).addClass('admin-menu-menu-processed')
+        .find('.content').hide().addClass('collapsible').addClass('collapsed').end()
+        .find('h2').css('cursor', 'pointer').click(function() {
+          $(this).next('.content').toggleClass('collapsed').slideToggle('fast');
+        });
+    });
   }
 
   // Hover emulation for IE 6.
