@@ -97,7 +97,7 @@ function admin_menu_theme_settings() {
     '#type' => 'checkbox',
     '#title' => t('Apply margin-top to page body'),
     '#default_value' => variable_get('admin_menu_margin_top', 1),
-    '#description' => t('If this setting is disabled, some absolute or fixed positioned page elements may be covered by Administration Menu.'),
+    '#description' => t('If enabled, the output of this site will be shifted for approx. 20 pixels from the top of the viewport to make room for the Administration Menu. If this setting is disabled, some absolute or fixed positioned page elements at the top of the viewport may be covered by Administration Menu.'),
   );
   $form['tweaks'] = array(
     '#type' => 'fieldset',
@@ -448,9 +448,8 @@ function admin_menu_clear_cache() {
 /**
  * Implementation of hook_panels_cache().
  *
- * We're misusing the panels_cache hook a bit: instead of returning information
- * about a caching implementation, we simply check if the current request has a
- * POST payload and clear our cache.
+ * We're misusing the panels_cache hook here: whenever called, check if the
+ * current request has a POST payload, and clear the cached admin menu.
  * This can easily be seen as a hack, as it will happen way too often when
  * working on the panels admin pages.
  */
