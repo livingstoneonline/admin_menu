@@ -220,7 +220,7 @@ function admin_menu_adjust_items(&$_admin_menu) {
       if (function_exists($type->module .'_form')) {
         admin_menu_add_item($_admin_menu, $mid_content_types, array(
           'title' => t('Edit !name', array('!name' => $name)),
-          'path' => 'admin/content/types/'. str_replace('_', '-', $type->type),
+          'path' => 'admin/content/types/'. str_replace('_', '-', $type->type) .'/fields',
           'weight' => -5,
         ));
       }
