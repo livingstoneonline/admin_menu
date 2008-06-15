@@ -3,7 +3,7 @@
 -- SUMMARY --
 
 Drupal Administration Menu displays the whole menu tree below /admin including
-all invisible local tasks in a drop-down menu. So administrators need less time
+most local tasks in a drop-down menu. So administrators need less time
 to access pages which are only visible after one or two clicks normally.
 
 Admin menu also provides hook_admin_menu() that allows other modules to add or
@@ -28,7 +28,7 @@ None.
 -- CONFIGURATION --
 
 * Configure user permissions in administer >> User management >> Access control
-  >> Drupal Administration Menu:
+  >> admin_menu module:
 
   - access administration menu: Displays Drupal Administration Menu.
 
@@ -47,7 +47,7 @@ None.
 -- CUSTOMIZATION --
 
 * You have two options to override the admin menu icon:
-  
+
   1) Disable it via CSS in your theme:
 <code>
 body #admin-menu-icon { display: none; }

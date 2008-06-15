@@ -30,7 +30,7 @@ $(document).ready(function() {
       $(this).removeClass('iehover');
     });
   }
-  
+
   // Delayed mouseout.
   $('#admin-menu li').hover(function() {
     // Stop the timer.

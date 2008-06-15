@@ -2,6 +2,17 @@
 // $Id$
 
 /**
+ * Implementation of hook_uninstall().
+ */
+function admin_menu_uninstall() {
+  // Delete variables.
+  variable_del('admin_menu_devel_modules_enabled');
+  variable_del('admin_menu_margin_top');
+  variable_del('admin_menu_tweak_menu');
+  variable_del('admin_menu_tweak_modules');
+}
+
+/**
  * #224605: Rebuild cached menu for users.
  */
 function admin_menu_update_5202() {
@@ -15,4 +26,5 @@ function admin_menu_update_5202() {
 
   return $ret;
 }
+
 
