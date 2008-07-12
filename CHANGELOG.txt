@@ -6,6 +6,8 @@ Admin Menu x.x-x.x, xxxx-xx-xx
 
 Admin Menu 5.x-2.x, xxxx-xx-xx
 ------------------------------
+#279287 by sun: Changed default setting to not collapse menus on
+  admin/build/menu.
 #242377 by sun: Fixed sub-level menu items exceed total document height.
 #266308 by sun: Fixed jQuery 1.0.x incompatible selector for collapsing modules.
 #268373 by sun: Backported code clean-up from 6.x.

@@ -81,7 +81,7 @@ function admin_menu_menu($may_cache) {
 
     drupal_add_js(array('admin_menu' => array('margin_top' => variable_get('admin_menu_margin_top', 1))), 'setting');
     if ($_GET['q'] == 'admin/build/menu') {
-      drupal_add_js(array('admin_menu' => array('tweak_menu' => variable_get('admin_menu_tweak_menu', 1))), 'setting');
+      drupal_add_js(array('admin_menu' => array('tweak_menu' => variable_get('admin_menu_tweak_menu', 0))), 'setting');
     }
     else if ($_GET['q'] == 'admin/build/modules') {
       drupal_add_js(array('admin_menu' => array('tweak_modules' => variable_get('admin_menu_tweak_modules', 1))), 'setting');
@@ -107,7 +107,7 @@ function admin_menu_theme_settings() {
   $form['tweaks']['admin_menu_tweak_menu'] = array(
     '#type' => 'checkbox',
     '#title' => t('Collapse menus in menu administration'),
-    '#default_value' => variable_get('admin_menu_tweak_menu', 1),
+    '#default_value' => variable_get('admin_menu_tweak_menu', 0),
     '#description' => t('If enabled, menu containers on the <a href="!menu-url">Site building &raquo; Menus</a> page will be collapsed like fieldsets.', array('!menu-url' => url('admin/build/menu'))),
   );
   $form['tweaks']['admin_menu_tweak_modules'] = array(
