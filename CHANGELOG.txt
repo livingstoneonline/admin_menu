@@ -6,6 +6,8 @@ Admin Menu x.x-x.x, xxxx-xx-xx
 
 Admin Menu 5.x-2.x, xxxx-xx-xx
 ------------------------------
+#279287 by sun: Usability: Added JavaScript to turn menus on admin/build/menu
+  into fieldsets with default collapse.js behavior attached.
 #279287 by sun: Changed default setting to not collapse menus on
   admin/build/menu.
 #242377 by sun: Fixed sub-level menu items exceed total document height.
