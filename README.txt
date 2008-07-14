@@ -88,6 +88,17 @@ body #admin-menu { font-size: 10px; }
 
 -- FAQ --
 
+Q: Content management >> Create content items are not displayed, although the
+   user has been granted access to create content. Why?
+
+A: This issue is caused by the circumstance that no other administrative menu
+   item below Content management is visible for the user. Because of that,
+   Drupal does not render this menu grouping item at all, and admin_menu is
+   therefore not able to add the items below Create content.
+
+   If you grant just one other permission for that user role, for example
+   'administer taxonomy', the whole Content management item should show up.
+
 Q: When admin_menu is enabled, plenty of blank space is added to the bottom of
    my theme. Why?
 

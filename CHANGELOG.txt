@@ -6,6 +6,7 @@ Admin Menu x.x-x.x, xxxx-xx-xx
 
 Admin Menu 5.x-2.x, xxxx-xx-xx
 ------------------------------
+#226502 by sun: Added FAQ entry for Content management -> Create content items.
 #279287 by sun: Usability: Added JavaScript to turn menus on admin/build/menu
   into fieldsets with default collapse.js behavior attached.
 #279287 by sun: Changed default setting to not collapse menus on
