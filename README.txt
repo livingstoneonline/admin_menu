@@ -27,7 +27,7 @@ None.
 
 -- CONFIGURATION --
 
-* Configure user permissions in administer >> User management >> Access control
+* Configure user permissions in Administer >> User management >> Access control
   >> admin_menu module:
 
   - access administration menu: Displays Drupal Administration Menu.
@@ -40,7 +40,7 @@ None.
   have the permission 'administer access control' and 'administer users', the
   whole 'User management' menu item will not be displayed.
 
-* Customize module settings in administer >> Site configuration >> Administration
+* Customize module settings in Administer >> Site configuration >> Administration
   Menu.
 
 
@@ -103,7 +103,7 @@ Q: When admin_menu is enabled, plenty of blank space is added to the bottom of
    my theme. Why?
 
 A: This is caused by a long list of links to module issue queues at Drupal.org.
-   Just go to administer >> User management >> Access control >> admin_menu and
+   Just go to Administer >> User management >> Access control >> admin_menu and
    disable the permission "display drupal links" for your or all roles.
    Since uid 1 always has all permissions, this link list cannot be disabled
    for uid 1.
@@ -112,6 +112,15 @@ Q: After upgrading to 5.x-2.x, admin_menu disappeared. Why?
 
 A: This should not happen. If it did, visit
    http://<yoursitename>/admin/build/menu to re-generate your menu cache.
+
+Q: Sometimes the user counter displays a lot of anonymous users, but when
+   comparing the site's statistics (f.e. in Google Analytics) there is no such
+   huge amount of users and/or requests reported.
+
+A: If your site was concurrently spidered by search-engine robots, it's commonly
+   known to have a giant amount of anonymous users for a short time-frame.
+   Most web statistics systems like Google Analytics filter such requests
+   already.
 
 Q: After upgrading, admin_menu disappeared. Why?
 
