@@ -169,13 +169,15 @@ function admin_menu_adjust_items(&$_admin_menu) {
     admin_menu_add_item($_admin_menu, $mid_drupal, array('title' => t('Drupal issue queue'), 'path' => 'http://drupal.org/project/issues/drupal'));
     
     // Add links to project issue queues.
+    $projects = array();
     foreach (module_list(FALSE, FALSE, TRUE) as $module) {
       $info = _module_parse_info_file(drupal_get_path('module', $module) .'/'. $module .'.info');
-      if (isset($info['project']) && $info['project'] == 'drupal') {
+      if (!isset($info['project']) || (isset($info['project']) && ($info['project'] == 'drupal' || isset($projects[$info['project']])))) {
         continue;
       }
-      $url = 'http://drupal.org/project/issues/'. $module;
-      // Filter project versions via query string not yet supported.
+      $projects[$info['project']] = 1;
+      $url = 'http://drupal.org/project/issues/'. $info['project'];
+      // Filtering project versions via query string is not yet supported.
       // @see http://drupal.org/node/97569
       // $url .= !empty($info['version']) ? '/'. $info['version'] : '';
       admin_menu_add_item($_admin_menu, $mid_drupal, array('title' => t('@title issue queue', array('@title' => $info['name'])), 'path' => $url));
