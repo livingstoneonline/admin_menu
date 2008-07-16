@@ -6,6 +6,10 @@ Admin Menu x.x-x.x, xxxx-xx-xx
 
 Admin Menu 5.x-2.x, xxxx-xx-xx
 ------------------------------
+
+
+Admin Menu 5.x-2.6, 2008-07-16
+------------------------------
 #268211 by sun: Fixed invalid issue queue links for custom modules and
   sub-modules of projects.
 #261461 by sun: Added FAQ entry for displaying other menus like admin_menu.
