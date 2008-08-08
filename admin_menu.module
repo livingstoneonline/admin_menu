@@ -497,7 +497,7 @@ function admin_menu_toggle_modules() {
   }
   else {
     // Allow site admins to override this variable via settings.php.
-    $devel_modules = variable_get('admin_menu_devel_modules', array('cache_disable', 'coder', 'debug', 'delete_all', 'demo', 'devel', 'devel_node_access', 'macro', 'form_controller', 'imagecache_ui', 'journal', 'trace', 'util', 'views_ui', 'views_theme_wizard'));
+    $devel_modules = variable_get('admin_menu_devel_modules', array('cache_disable', 'coder', 'content_copy', 'debug', 'delete_all', 'demo', 'devel', 'devel_node_access', 'devel_themer', 'macro', 'form_controller', 'imagecache_ui', 'journal', 'trace', 'upgrade_status', 'user_display_ui', 'util', 'views_ui', 'views_theme_wizard'));
     // Store currently enabled modules in a variable.
     $devel_modules = array_intersect(module_list(FALSE, FALSE), $devel_modules);
     if (!empty($devel_modules)) {
