@@ -263,10 +263,9 @@ function admin_menu_adjust_items(&$_admin_menu) {
     ),
   );
   foreach ($modules as $module => $attribs) {
-    if (module_exists($module) && user_access($attribs['perm'])) {
+    if (user_access($attribs['perm'])) {
       $mid_panels = $_admin_menu['index'][$attribs['parent']];
-      $function = $module .'_load_all';
-      foreach ($function() as $panel) {
+      foreach ((array)module_invoke($module, 'load_all') as $panel) {
         if (empty($panel->disabled)) {
           admin_menu_add_item($_admin_menu, $mid_panels, array(
             'title' => t('Edit !name', array('!name' => $panel->name)),
