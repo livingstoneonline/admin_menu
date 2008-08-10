@@ -355,9 +355,7 @@ function admin_menu_move_item(&$_admin_menu, $mid, $pid) {
     $_admin_menu[$pid]['children'][] = $mid;
     return TRUE;
   }
-  else {
-    return FALSE;
-  }
+  return FALSE;
 }
 
 /**
@@ -379,9 +377,6 @@ function admin_menu_remove_item(&$_admin_menu, $path) {
     if ($child_key !== FALSE) {
       unset($_admin_menu[$pid]['children'][$child_key]);
       return TRUE;
-    }
-    else {
-      return FALSE;
     }
   }
   return FALSE;
