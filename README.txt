@@ -6,8 +6,8 @@ Drupal Administration Menu displays the whole menu tree below /admin including
 most local tasks in a drop-down menu. So administrators need less time
 to access pages which are only visible after one or two clicks normally.
 
-Admin menu also provides hook_admin_menu() that allows other modules to add or
-alter menu items.
+Admin menu also provides hook_admin_menu() that allows other modules to add
+menu links.
 
 For a full description visit the project page:
   http://drupal.org/project/admin_menu
@@ -43,6 +43,10 @@ None.
 * Customize module settings in Administer >> Site configuration >> Administration
   Menu.
 
+* Most probably you want to either hide the regular 'Navigation' menu block, or
+  move the 'Administer' menu item into a new/separate menu, so administrative
+  menu items are not displayed twice on all pages.
+
 
 -- CUSTOMIZATION --
 
@@ -72,9 +76,11 @@ body #admin-menu { font-size: 10px; }
 
 -- TROUBLESHOOTING --
 
-* If admin menu is not displayed, check the following steps:
+* If the administration menu is not displayed, check the following steps:
 
-  - Is the 'access administration menu' permission enabled?
+  - Is admin_menu's "access administration menu" permission enabled?
+
+  - Is system's "access administration pages" permission enabled?
 
   - Does your theme output $closure? (See FAQ below for more info)
 
@@ -111,7 +117,7 @@ A: This is caused by a long list of links to module issue queues at Drupal.org.
 Q: After upgrading to 5.x-2.x, admin_menu disappeared. Why?
 
 A: This should not happen. If it did, visit
-   http://<yoursitename>/admin/build/menu to re-generate your menu cache.
+   http://<yoursitename>/admin/build/menu to re-generate your menu.
 
 Q: Can I configure admin_menu to display another (or the Navigation) menu just
    like the administration menu?
