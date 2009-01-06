@@ -166,6 +166,12 @@ A: Yes, this is the intended behavior. Since admin_menu is only visible for
    logged-on administrative users, it would not make sense to load its
    stylesheet for all, including anonymous users.
 
+Q: Why are sub-menus not visible in Opera?
+
+A: In the Opera browser preferences under "web pages" there is an option to fit
+   to width. By disabling this option, sub-menus in the administration menu
+   should appear.
+
 
 -- CONTACT --
 
