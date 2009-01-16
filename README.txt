@@ -2,16 +2,15 @@
 
 -- SUMMARY --
 
-Drupal Administration Menu displays the whole menu tree below /admin including
-most local tasks in a drop-down menu. So administrators need less time
-to access pages which are only visible after one or two clicks normally.
+The Drupal administration menu module displays the entire administrative
+menu tree (and most local tasks) in a drop-down menu, providing administrators
+one- or two-click access to most pages. Other modules may also add menu
+links to administration menu using hook_admin_menu().
 
-Admin menu also provides hook_admin_menu() that allows other modules to add
-menu links.
-
-For a full description visit the project page:
+For a full description of the module, visit the project page:
   http://drupal.org/project/admin_menu
-Bug reports, feature suggestions and latest developments:
+
+To submit bug reports and feature suggestions, or to track changes:
   http://drupal.org/project/issues/admin_menu
 
 
@@ -30,65 +29,67 @@ None.
 * Configure user permissions in Administer >> User management >> Access control
   >> admin_menu module:
 
-  - access administration menu: Displays Drupal Administration Menu.
+  - access administration menu
 
-  - display drupal links: Displays additional links to Drupal.org and issue
-    queues of all enabled contrib modules in the Drupal Administration Menu icon.
+    Users in roles with the "access administration menu" permission will see
+    the administration menu at the top of each page.
 
-  Please bear in mind that the displayed menu items in Drupal Administration Menu
-  depend on the actual permissions of a user.  For example, if a user does not
-  have the permission 'administer access control' and 'administer users', the
-  whole 'User management' menu item will not be displayed.
+  - display drupal links
 
-* Customize module settings in Administer >> Site configuration >> Administration
-  Menu.
+    Users in roles with the "display drupal links" permission will receive
+    links to Drupal.org issue queues for all enabled contributed modules. The
+    issue queue links appear under the administration menu icon.)
 
-* Most probably you want to either hide the regular 'Navigation' menu block, or
-  move the 'Administer' menu item into a new/separate menu, so administrative
-  menu items are not displayed twice on all pages.
+  Note that the menu items displayed in the administration Menu depend on the
+  actual permissions of the viewing user. For example, the "User management"
+  menu item is not displayed to a user who is not a member of a role with the
+  "administer access control" and "administer users" permissions.
+
+* Customize the menu settings in Administer >> Site configuration >>
+  Administration menu.
+
+* To prevent administrative menu items from appearing twice, you may hide the
+  "Navigation" menu block, or move the "Administer" menu items into a separate
+  menu.
 
 
 -- CUSTOMIZATION --
 
-* You have two options to override the admin menu icon:
+* To override the default administration menu icon, you may:
 
   1) Disable it via CSS in your theme:
-<code>
-body #admin-menu-icon { display: none; }
-</code>
+
+     body #admin-menu-icon { display: none; }
 
   2) Alter the image by overriding the theme function:
 
-     Copy the whole function theme_admin_menu_icon() into your template.php,
-     rename it to f.e. phptemplate_admin_menu_icon() and customize the output
-     according to your needs.
+     Copy the entire theme_admin_menu_icon() function into your template.php,
+     rename it to phptemplate_admin_menu_icon() or THEMENAME_admin_menu_icon(),
+     and customize the output according to your needs.
 
   Please bear in mind that admin_menu's output is cached. You need to clear your
   site's cache (probably best using Devel module, or by manually truncating the
   cache_menu database table) to see any changes of your theme override function.
 
-* You can override the font size by adding a line to your stylesheet in your
-  theme like the following:
-<code>
-body #admin-menu { font-size: 10px; }
-</code>
+* To override the font size, add the following line to your theme's stylesheet:
+
+  body #admin-menu { font-size: 10px; }
 
 
 -- TROUBLESHOOTING --
 
-* If the administration menu is not displayed, check the following steps:
+* If the menu does not display, check the following:
 
-  - Is admin_menu's "access administration menu" permission enabled?
+  - Are the "access administration menu" and "access administration pages"
+    permissions enabled for the appropriate roles?
 
-  - Is system's "access administration pages" permission enabled?
+  - Does your theme output the $closure variable?
 
-  - Does your theme output $closure? (See FAQ below for more info)
+* If the menu is rendered behind a Flash movie object, add this property to your
+  Flash object(s):
 
-* If admin menu is rendered behind a flash movie object, you need to add the
-  following property to your flash object(s):
-<code>
-<param name="wmode" value="transparent" />
-</code>
+  <param name="wmode" value="transparent" />
+
   See http://drupal.org/node/195386 for further information.
 
 
@@ -105,8 +106,8 @@ A: This issue is caused by the circumstance that no other administrative menu
    If you grant just one other permission for that user role, for example
    'administer taxonomy', the whole Content management item should show up.
 
-Q: When admin_menu is enabled, plenty of blank space is added to the bottom of
-   my theme. Why?
+Q: When the administration menu module is enabled, blank space is added to the
+   bottom of my theme. Why?
 
 A: This is caused by a long list of links to module issue queues at Drupal.org.
    Just go to Administer >> User management >> Access control >> admin_menu and
@@ -114,27 +115,28 @@ A: This is caused by a long list of links to module issue queues at Drupal.org.
    Since uid 1 always has all permissions, this link list cannot be disabled
    for uid 1.
 
+
 Q: After upgrading to 5.x-2.x, admin_menu disappeared. Why?
 
 A: This should not happen. If it did, visit
    http://<yoursitename>/admin/build/menu to re-generate your menu.
 
-Q: Can I configure admin_menu to display another (or the Navigation) menu just
-   like the administration menu?
 
-A: No. As the name implies, Drupal Administration Menu is for the administrative
-   menu only. However, if you know CSS, you can simply copy'n'paste the contents
-   of admin_menu.css into your theme's stylesheet and alter #admin-menu to any
-   other menu block id, for example #block-menu-1 or the like.
+Q: Can I configure the administration menu module to display another menu (like
+   the Navigation menu, for instance)?
 
-Q: Sometimes the user counter displays a lot of anonymous users, but when
-   comparing the site's statistics (f.e. in Google Analytics) there is no such
-   huge amount of users and/or requests reported.
+A: No. As the name implies, administration menu module is for administrative
+   menu links only. However, you can copy and paste the contents of
+   admin_menu.css into your theme's stylesheet and replace #admin-menu with any
+   other menu block id (#block-menu-1, for example).
 
-A: If your site was concurrently spidered by search-engine robots, it's commonly
-   known to have a giant amount of anonymous users for a short time-frame.
-   Most web statistics systems like Google Analytics filter such requests
-   already.
+
+Q: Sometimes, the user counter displays a lot of anonymous users, but no spike
+   of users or requests appear in Google Analytics or other tracking tools.
+
+A: If your site was concurrently spidered by search-engine robots, it may have
+   a significant number of anonymous users for a short time. Most web tracking
+   tools like Google Analytics automatically filter out these requests.
 
 Q: After upgrading, admin_menu disappeared. Why?
 
@@ -173,6 +175,19 @@ A: In the Opera browser preferences under "web pages" there is an option to fit
    should appear.
 
 
+Q: How can the administration menu be hidden on certain pages?
+
+A: You can suppress it by simply calling the following function in PHP:
+
+     module_invoke('admin_menu', 'suppress');
+
+   However, this needs to happen as early as possible in the page request, so
+   placing it in the theming layer (resp. a page template file) is too late.
+   Ideally, the function is called in hook_init() in a custom module.  If you do
+   not have a custom module, placing it into some conditional code at the top of
+   template.php may work out, too.
+
+
 -- CONTACT --
 
 Current maintainers:
@@ -184,4 +199,11 @@ This project has been sponsored by:
   Specialized in consulting and planning of Drupal powered sites, UNLEASHED
   MIND offers installation, development, theming, customization, and hosting
   to get you started. Visit http://www.unleashedmind.com for more information.
+
+* Lullabot
+  Friendly Drupal experts providing professional consulting & education
+  services. Visit http://www.lullabot.com for more information.
+
+* Acquia
+  Commercially Supported Drupal. Visit http://acquia.com for more information.
 
