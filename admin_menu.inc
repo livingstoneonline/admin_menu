@@ -15,7 +15,7 @@
  * @param int $mid_admin
  *   The menu item id to use for the administration menu.
  */
-function admin_menu_build($mid_admin) {
+function admin_menu_build(&$_admin_menu, $mid_admin) {
   global $_menu;
   $_admin_menu = array();
   
@@ -41,6 +41,9 @@ function admin_menu_build($mid_admin) {
   $_admin_menu[$mid_admin] = $_menu['items'][$mid_admin];
   admin_menu_item_url($_admin_menu, $mid_admin);
   _admin_menu_get_children($_admin_menu, $_admin_menu[$mid_admin]);
+
+  // Sort items.
+  usort($_admin_menu[$mid_admin]['children'], '_admin_menu_sort');
   
   // Adjust some menu items for better user experience.
   admin_menu_adjust_items($_admin_menu);
@@ -50,8 +53,6 @@ function admin_menu_build($mid_admin) {
     $function = $module .'_admin_menu';
     $function($_admin_menu, TRUE);
   }
-  
-  return $_admin_menu;
 }
 
 /**
@@ -90,6 +91,8 @@ function _admin_menu_get_children(&$_admin_menu, &$item) {
         // Recurse to child menu items.
         if (isset($_menu['items'][$child]['children'])) {
           _admin_menu_get_children($_admin_menu, $_admin_menu[$child]);
+          // Sort items.
+          usort($_admin_menu[$child]['children'], '_admin_menu_sort');
         }
         
         // Remove this child item if it is visible in the navigation.
@@ -360,6 +363,9 @@ function admin_menu_move_item(&$_admin_menu, $mid, $pid) {
     // Insert new child pointer.
     $_admin_menu[$mid]['pid'] = $pid;
     $_admin_menu[$pid]['children'][] = $mid;
+
+    // Sort items.
+    usort($_admin_menu[$pid]['children'], '_admin_menu_sort');
     return TRUE;
   }
   return FALSE;

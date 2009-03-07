@@ -81,6 +81,9 @@ function admin_menu_menu($may_cache) {
     // Performance: Defer execution.
     drupal_add_js($path .'/admin_menu.js', 'module', 'header', TRUE);
 
+    // The destination query string for the current page is applied via JS.
+    drupal_add_js(array('admin_menu' => array('destination' => drupal_get_destination())), 'setting');
+
     if ($setting = variable_get('admin_menu_margin_top', 1)) {
       drupal_add_js(array('admin_menu' => array('margin_top' => $setting)), 'setting');
     }
@@ -176,21 +179,36 @@ function admin_menu_footer($main = 0) {
   if (!user_access('access administration menu') || admin_menu_suppress(FALSE)) {
     return;
   }
+  global $user, $locale;
+
+  $cid = "$user->uid:$locale:admin_menu:output";
+
+  // Try to load and output administration menu from cache.
+  $cache = cache_get($cid, 'cache_menu');
+  if ($cache) {
+    return $cache->data;
+  }
+
+  // Rebuild the output.
   global $_menu;
-  
+
   // Get item id of /q=admin, which we suppose to be the root for admin menu.
   $mid_admin = $_menu['path index']['admin'];
-  $_admin_menu =& admin_menu_get_menu($mid_admin);
+  $_admin_menu = &admin_menu_get_menu($mid_admin);
   
   // Allow other modules to integrate with admin_menu (uncached).
   foreach (module_implements('admin_menu') as $module) {
     $function = $module .'_admin_menu';
     $function($_admin_menu, FALSE);
   }
-  
+
   $content  = '<div id="admin-menu">';
   $content .= theme_admin_menu_tree($mid_admin);
   $content .= '</div>';
+
+  // Cache the menu for this user, to expire after one day.
+  cache_set($cid, 'cache_menu', $content, time() + (60 * 60 * 24));
+
   return $content;
 }
 
@@ -212,7 +230,7 @@ function &admin_menu_get_menu($mid_admin = 5) {
   }
   global $user, $locale;
   
-  $cid = $user->uid .':'. $locale .':admin_menu';
+  $cid = "$user->uid:$locale:admin_menu";
   $cache = cache_get($cid, 'cache_menu');
   // Check if cache is an array needed to distinguish between v5.x-1.2 and later
   // versions.
@@ -221,7 +239,7 @@ function &admin_menu_get_menu($mid_admin = 5) {
   }
   else {
     require_once drupal_get_path('module', 'admin_menu') .'/admin_menu.inc';
-    $_admin_menu = admin_menu_build($mid_admin);
+    admin_menu_build($_admin_menu, $mid_admin);
     cache_set($cid, 'cache_menu', serialize($_admin_menu), time() + (60 * 60 * 24));
   }
   
@@ -241,13 +259,9 @@ function theme_admin_menu_tree($pid = 1) {
   $_admin_menu = admin_menu_get_menu();
   $output = '';
   
-  if (isset($_admin_menu[$pid]) && $_admin_menu[$pid]['children']) {
-    // Since we allow other modules to add items to admin menu, we need to sort
-    // all items (again).
-    usort($_admin_menu[$pid]['children'], '_admin_menu_sort');
+  if (!empty($_admin_menu[$pid]['children'])) {
     foreach ($_admin_menu[$pid]['children'] as $mid) {
-      $children = isset($_admin_menu[$mid]['children']) ? $_admin_menu[$mid]['children'] : NULL;
-      $output .= theme_admin_menu_item($mid, theme_admin_menu_tree($mid), count($children) == 0);
+      $output .= theme_admin_menu_item($mid, theme_admin_menu_tree($mid), empty($_admin_menu[$mid]['children']));
     }
   }
   return $output ? "\n<ul>". $output .'</ul>' : '';
@@ -264,13 +278,14 @@ function theme_admin_menu_tree($pid = 1) {
  *   A boolean indicating whether this menu item is a leaf.
  */
 function theme_admin_menu_item($mid, $children = '', $leaf = TRUE) {
-  static $display_option;
+  static $display_option, $destination;
 
   $_admin_menu = admin_menu_get_menu();
   $item = $_admin_menu[$mid];
   
   if (!isset($display_option)) {
     $display_option = variable_get('admin_menu_display', 0);
+    $destination = drupal_get_destination();
   }
   // Display extra information about menu items if enabled (devel).
   if ($display_option) {
@@ -289,8 +304,21 @@ function theme_admin_menu_item($mid, $children = '', $leaf = TRUE) {
   if (isset($item['class'])) {
     $class[] = $item['class'];
   }
+
+  // Strip destination query string from href attribute and apply a CSS class
+  // for our JavaScript behavior instead.
+  $path = preg_replace('/[\?|&]' . preg_quote($destination, '/') . '/', '', $item['path']);
+  if ($path != $item['path']) {
+    if (!empty($item['attributes']['class'])) {
+      $item['attributes']['class'] .= ' admin-menu-destination';
+    }
+    else {
+      $item['attributes']['class'] = 'admin-menu-destination';
+    }
+  }
+
   $output  = '<li'. (!empty($class) ? ' class="'. implode(' ', $class) .'"' : '') .'>';
-  $output .= '<a href="'. check_url($item['path']) .'"'. drupal_attributes($item['attributes']) .'>'. filter_xss_admin($item['title']) .'</a>'. $children .'</li>';
+  $output .= '<a href="' . check_url($path) . '"' . drupal_attributes($item['attributes']) . '>' . filter_xss_admin($item['title']) . '</a>' . $children . '</li>';
   return $output;
 }
 
@@ -371,6 +399,9 @@ function admin_menu_add_item(&$_admin_menu, $pid, $item) {
   $_admin_menu[$pid]['children'][] = $id;
   $_admin_menu['index'][$item['path']] = $id;
   admin_menu_item_url($_admin_menu, $id);
+
+  // Sort items.
+  usort($_admin_menu[$pid]['children'], '_admin_menu_sort');
 
   return $id;
 }
