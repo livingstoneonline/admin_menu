@@ -470,10 +470,10 @@ if (module_exists('devel') && !function_exists('devel_admin_menu')) {
       }
       // Add switch_user items.
       if ($access_switch && $devel_user_links = module_invoke('devel', 'switch_user_list')) {
-        $mid_logout = $admin_menu['index']['logout'];
+        $mid_user = $admin_menu['index']['user'];
         foreach ($devel_user_links as $link) {
           if (preg_match('!href="'. base_path() .'([^\?]+)\?([^"]+)" title="([^"]+)">((<em>)?[^<]+(</em>)?)!', $link, $match)) {
-            admin_menu_add_item($admin_menu, $mid_logout, array('title' => $match[4], 'description' => $match[3], 'path' => urldecode($match[1]), 'query' => $match[2]));
+            admin_menu_add_item($admin_menu, $mid_user, array('title' => $match[4], 'description' => $match[3], 'path' => urldecode($match[1]), 'query' => $match[2]));
           }
         }
       }

@@ -186,12 +186,19 @@ function admin_menu_adjust_items(&$_admin_menu) {
   
   // Add logout item.
   if ($user->uid > 0) {
+    $mid_user = $_menu['path index']['user'];
+    admin_menu_add_item($_admin_menu, $mid_admin, array(
+      'title' => t('@name', array('@name' => $user->name)),
+      'path' => $_menu['items'][$mid_user]['path'],
+      'weight' => -99,
+      'class' => 'admin-menu-action',
+    ));
     $mid_logout = $_menu['path index']['logout'];
     admin_menu_add_item($_admin_menu, $mid_admin, array(
-      'title' => t('Logout @name', array('@name' => $user->name)),
+      'title' => t('Logout'),
       'path' => $_menu['items'][$mid_logout]['path'],
       'weight' => -100,
-      'class' => 'admin-menu-action admin-menu-logout',
+      'class' => 'admin-menu-action',
     ));
   }
   
