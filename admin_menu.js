@@ -59,6 +59,17 @@ Drupal.adminMenu.pageTabs = function (context, $adminMenu) {
 };
 
 /**
+ * Inject destination query strings for current page.
+ */
+Drupal.adminMenu.destination = function (context, $adminMenu) {
+  if (Drupal.settings.admin_menu && Drupal.settings.admin_menu.destination) {
+    $('.admin-menu-destination', $adminMenu).each(function() {
+      this.search += (!this.search.length ? '?' : '&') + Drupal.settings.admin_menu.destination;
+    });
+  }
+}
+
+/**
  * Apply JavaScript-based hovering behaviors.
  *
  * @todo This has to run last.  If another script registers additional behaviors
