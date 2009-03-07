@@ -11,7 +11,7 @@ Drupal.adminMenu = Drupal.adminMenu || {};
 Drupal.behaviors.adminMenu = function (context) {
   var $adminMenu = $('#admin-menu');
   if ($adminMenu.size()) {
-    jQuery.each(Drupal.adminMenu, function() {
+    $.each(Drupal.adminMenu, function() {
       this(context, $adminMenu);
     });
   }
