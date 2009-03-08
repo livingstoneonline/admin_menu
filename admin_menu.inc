@@ -3,22 +3,26 @@
 
 /**
  * @file
- * Cached builder functions for Drupal Administration Menu.
+ * Menu build functions for Administration menu.
  */
 
 /**
- * Build the administration menu tree.
+ * Rebuild administration menu links.
  *
- * This is only called if the menu has been modified, i.e. the menu cache has
- * been cleared.
+ * This is invoked whenever the menu is rebuilt.
  *
- * @param int $mid_admin
+ * @param $_admin_menu
+ *   An array containing the complete administration menu structure, passed by
+ *   reference.
+ * @param $mid_admin
  *   The menu item id to use for the administration menu.
+ *
+ * @see admin_menu_footer()
  */
 function admin_menu_build(&$_admin_menu, $mid_admin) {
   global $_menu;
   $_admin_menu = array();
-  
+
   // Temporary access permission fix for root menu items until #126621 is
   // committed to Drupal core.
   foreach ($_menu['items'][$mid_admin]['children'] as $key => $parent) {
@@ -35,7 +39,7 @@ function admin_menu_build(&$_admin_menu, $mid_admin) {
       $_menu['items'][$parent]['access'] = TRUE;
     }
   }
-  
+
   // Copy admin menu items into a new menu tree.
   $_admin_menu['index'] = $_menu['path index'];
   $_admin_menu[$mid_admin] = $_menu['items'][$mid_admin];
@@ -44,13 +48,13 @@ function admin_menu_build(&$_admin_menu, $mid_admin) {
 
   // Sort items.
   usort($_admin_menu[$mid_admin]['children'], '_admin_menu_sort');
-  
+
   // Adjust some menu items for better user experience.
   admin_menu_adjust_items($_admin_menu);
-  
+
   // Allow other modules to integrate with admin_menu.
   foreach (module_implements('admin_menu') as $module) {
-    $function = $module .'_admin_menu';
+    $function = $module . '_admin_menu';
     $function($_admin_menu, TRUE);
   }
 }
@@ -60,15 +64,15 @@ function admin_menu_build(&$_admin_menu, $mid_admin) {
  *
  * Any accessible menu items are added, including local tasks.
  *
- * @param array $_admin_menu
+ * @param $_admin_menu
  *   An array containing the complete administration menu structure, passed by
  *   reference.
- * @param array $item
+ * @param $item
  *   The (starting) menu item to use for the administration menu.
  */
 function _admin_menu_get_children(&$_admin_menu, &$item) {
   global $_menu;
-  
+
   if (isset($item['children'])) {
     foreach ($item['children'] as $child) {
       // Check access permissions.
@@ -80,21 +84,21 @@ function _admin_menu_get_children(&$_admin_menu, &$item) {
       }
       // Check menu item type.
       $item_is_visible = $_menu['items'][$child]['type'] & (MENU_VISIBLE_IN_TREE | MENU_IS_LOCAL_TASK);
-      
+
       // Create the child item if it is accessible and visible.
       // Additional condition to hide items linking to parent:
       //   && !($_menu['items'][$child]['type'] & MENU_LINKS_TO_PARENT)
       if ($item_is_accessible && $item_is_visible) {
         $_admin_menu[$child] = $_menu['items'][$child];
         admin_menu_item_url($_admin_menu, $child);
-        
+
         // Recurse to child menu items.
         if (isset($_menu['items'][$child]['children'])) {
           _admin_menu_get_children($_admin_menu, $_admin_menu[$child]);
           // Sort items.
           usort($_admin_menu[$child]['children'], '_admin_menu_sort');
         }
-        
+
         // Remove this child item if it is visible in the navigation.
         unset($_menu['visible'][$child]);
       }
@@ -115,13 +119,13 @@ function _admin_menu_get_children(&$_admin_menu, &$item) {
 /**
  * Add some hard-coded features for better user experience.
  *
- * @param array $_admin_menu
+ * @param &$_admin_menu
  *   An array containing the complete administration menu structure, passed by
  *   reference.
  */
 function admin_menu_adjust_items(&$_admin_menu) {
   global $_menu, $user, $base_url;
-  
+
   // Add the icon containing special links.
   $mid_admin = $_admin_menu['index']['admin'];
   $mid_icon = admin_menu_add_item($_admin_menu, $mid_admin, array(
@@ -131,12 +135,12 @@ function admin_menu_adjust_items(&$_admin_menu) {
     'class' => 'admin-menu-icon',
   ));
   $_admin_menu['index']['admin_menu_icon'] = $mid_icon;
-  
+
   // Add 'administer' item to the icon menu.
   $mid_icon_admin = admin_menu_add_item($_admin_menu, $mid_icon, array('title' => t('Administer'), 'path' => 'admin', 'weight' => 10));
   // ...and reset 'administer' menu item id in path index.
   $_admin_menu['index']['admin'] = $mid_admin;
-  
+
   // Move 'By module' item if accessible, or remove it.
   $mid_bymodule = $_admin_menu['index']['admin/by-module'];
   if (user_access('administer site configuration')) {
@@ -145,48 +149,37 @@ function admin_menu_adjust_items(&$_admin_menu) {
   else {
     admin_menu_remove_item($_admin_menu, 'admin/by-module');
   }
-  
+
   // Remove 'By task' menu item.
   admin_menu_remove_item($_admin_menu, 'admin/by-task');
-  
+
   // Add system update links.
   admin_menu_add_item($_admin_menu, $mid_icon, array('title' => t('Run cron'), 'path' => 'admin/logs/status/run-cron', 'weight' => 50, 'query' => drupal_get_destination()));
   if ($user->uid == 1) {
-    admin_menu_add_item($_admin_menu, $mid_icon, array('title' => t('Run updates'), 'path' => $base_url .'/update.php', 'weight' => 50));
-  }
-
-  // Add developer modules toggle link.
-  if (user_access('administer site configuration')) {
-    $mid_icon = $_admin_menu['index']['admin_menu_icon'];
-    $current_state = variable_get('admin_menu_devel_modules_enabled', NULL);
-    admin_menu_add_item($_admin_menu, $mid_icon, array(
-      'title' => isset($current_state) ? t('Enable developer modules') : t('Disable developer modules'),
-      'path' => 'admin_menu/toggle-modules',
-      'weight' => 88,
-    ));
+    admin_menu_add_item($_admin_menu, $mid_icon, array('title' => t('Run updates'), 'path' => $base_url . '/update.php', 'weight' => 50));
   }
 
   // Add links to drupal.org.
   if (user_access('display drupal links')) {
     $mid_drupal = admin_menu_add_item($_admin_menu, $mid_icon, array('title' => t('Drupal.org'), 'path' => 'http://drupal.org', 'weight' => 100));
     admin_menu_add_item($_admin_menu, $mid_drupal, array('title' => t('Drupal issue queue'), 'path' => 'http://drupal.org/project/issues/drupal'));
-    
+
     // Add links to project issue queues.
     $projects = array();
     foreach (module_list(FALSE, FALSE, TRUE) as $module) {
-      $info = _module_parse_info_file(drupal_get_path('module', $module) .'/'. $module .'.info');
+      $info = _module_parse_info_file(drupal_get_path('module', $module) . '/' . $module . '.info');
       if (!isset($info['project']) || (isset($info['project']) && ($info['project'] == 'drupal' || isset($projects[$info['project']])))) {
         continue;
       }
       $projects[$info['project']] = 1;
-      $url = 'http://drupal.org/project/issues/'. $info['project'];
+      $url = 'http://drupal.org/project/issues/' . $info['project'];
       // Filtering project versions via query string is not yet supported.
       // @see http://drupal.org/node/97569
       // $url .= !empty($info['version']) ? '/'. $info['version'] : '';
       admin_menu_add_item($_admin_menu, $mid_drupal, array('title' => t('@title issue queue', array('@title' => $info['name'])), 'path' => $url));
     }
   }
-  
+
   // Add logout item.
   if ($user->uid > 0) {
     $mid_user = $_menu['path index']['user'];
@@ -204,7 +197,7 @@ function admin_menu_adjust_items(&$_admin_menu) {
       'class' => 'admin-menu-action',
     ));
   }
-  
+
   // Add 'Create <content_type>' menu items to Content management > Content.
   // If an user does not have 'administer nodes' permission, we need to copy
   // the 'Create content' item from the Navigation menu into 'Content
@@ -229,10 +222,10 @@ function admin_menu_adjust_items(&$_admin_menu) {
     $names = node_get_types('names');
     foreach ($names as $key => $name) {
       $type = $types[$key];
-      if (function_exists($type->module .'_form')) {
+      if (function_exists($type->module . '_form')) {
         admin_menu_add_item($_admin_menu, $mid_content_types, array(
           'title' => t('Edit !name', array('!name' => $name)),
-          'path' => 'admin/content/types/'. str_replace('_', '-', $type->type) .'/fields',
+          'path' => 'admin/content/types/' . str_replace('_', '-', $type->type) . '/fields',
           'weight' => -5,
         ));
       }
@@ -286,6 +279,16 @@ function admin_menu_adjust_items(&$_admin_menu) {
       }
     }
   }
+  // Add developer modules toggle link.
+  if (user_access('administer site configuration')) {
+    $mid_icon = $_admin_menu['index']['admin_menu_icon'];
+    $current_state = variable_get('admin_menu_devel_modules_enabled', NULL);
+    admin_menu_add_item($_admin_menu, $mid_icon, array(
+      'title' => isset($current_state) ? t('Enable developer modules') : t('Disable developer modules'),
+      'path' => 'admin_menu/toggle-modules',
+      'weight' => 88,
+    ));
+  }
 }
 
 /**
@@ -308,7 +311,7 @@ function admin_menu_adjust_items(&$_admin_menu) {
  */
 function admin_menu_copy_items(&$_admin_menu, $source_pid, $target_pid, $title = NULL, $tree = TRUE) {
   global $_menu;
-  
+
   if (isset($_menu['items'][$source_pid]['children']) && isset($_admin_menu[$target_pid])) {
     foreach ($_menu['items'][$source_pid]['children'] as $mid) {
       $item = $_menu['items'][$mid];
@@ -322,7 +325,7 @@ function admin_menu_copy_items(&$_admin_menu, $source_pid, $target_pid, $title =
       if (!in_array($mid, $_admin_menu[$target_pid]['children'])) {
         admin_menu_add_item($_admin_menu, $target_pid, $item);
       }
-      
+
       // Recurse into children.
       if (isset($_menu['items'][$mid]['children']) && count($_menu['items'][$mid]['children'])) {
         if ($tree) {
@@ -353,13 +356,13 @@ function admin_menu_copy_items(&$_admin_menu, $source_pid, $target_pid, $title =
  */
 function admin_menu_move_item(&$_admin_menu, $mid, $pid) {
   global $_menu;
-  
+
   if (isset($_admin_menu[$mid]) && isset($_admin_menu[$pid])) {
     // Remove current child pointer. Determine the path from the index
     // because it contains the unprocessed urls.
     $index = array_flip($_admin_menu['index']);
     admin_menu_remove_item($_admin_menu, $index[$mid]);
-    
+
     // Insert new child pointer.
     $_admin_menu[$mid]['pid'] = $pid;
     $_admin_menu[$pid]['children'][] = $mid;
@@ -382,7 +385,7 @@ function admin_menu_move_item(&$_admin_menu, $mid, $pid) {
  */
 function admin_menu_remove_item(&$_admin_menu, $path) {
   global $_menu;
-  
+
   $mid = $_admin_menu['index'][$path];
   if (isset($_admin_menu[$mid])) {
     $pid = $_admin_menu[$mid]['pid'];
@@ -396,11 +399,122 @@ function admin_menu_remove_item(&$_admin_menu, $path) {
 }
 
 /**
- * Render an icon to display in the Administration Menu.
+ * Form builder function for module settings.
+ */
+function admin_menu_theme_settings() {
+  $form['admin_menu_margin_top'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Adjust top margin'),
+    '#default_value' => variable_get('admin_menu_margin_top', 1),
+    '#description' => t('If enabled, the site output is shifted down approximately 20 pixels from the top of the viewport to display the administration menu. If disabled, some absolute- or fixed-positioned page elements may be covered by the administration menu.'),
+  );
+  $form['admin_menu_position_fixed'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Keep menu at top of page'),
+    '#default_value' => variable_get('admin_menu_position_fixed', 0),
+    '#description' => t('If enabled, the administration menu is always displayed at the top of the browser viewport (even after the page is scrolled). <strong>Note: In some browsers, this setting results in a malformed page, an invisible cursor, non-selectable elements in forms, or other issues. Disable this option if these issues occur.</strong>'),
+  );
+  $form['tweaks'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Advanced settings'),
+  );
+  $form['tweaks']['admin_menu_tweak_menu'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Collapse menus in menu administration'),
+    '#default_value' => variable_get('admin_menu_tweak_menu', 0),
+    '#description' => t('If enabled, menu containers on the <a href="!menu-url">Site building &raquo; Menus</a> page will be collapsed like fieldsets.', array('!menu-url' => url('admin/build/menu'))),
+  );
+  $form['tweaks']['admin_menu_tweak_modules'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Collapse fieldsets on modules page'),
+    '#default_value' => variable_get('admin_menu_tweak_modules', 0),
+    '#description' => t('If enabled, fieldsets on the <a href="!modules-url">modules</a> page are automatically collapsed when loading the page.', array('!modules-url' => url('admin/build/modules'))),
+  );
+  if (module_exists('util')) {
+    $form['tweaks']['admin_menu_tweak_modules']['#description'] .= '<br /><strong>' . t('If the Utility module was installed for this purpose, it can be safely disabled and uninstalled.') . '</strong>';
+  }
+  $form['tweaks']['admin_menu_tweak_tabs'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Move local tasks into menu'),
+    '#default_value' => variable_get('admin_menu_tweak_tabs', 0),
+    '#description' => t('If enabled, the tabs on the current page are moved into the administration menu. This feature is only available in themes that use the CSS classes <code>tabs primary</code> and <code>tabs secondary</code> for tabs.'),
+  );
+  return system_settings_form($form);
+}
+
+/**
+ * Implementation of hook_form_alter().
+ *
+ * Extends Devel module with Administration menu developer settings.
+ */
+function admin_menu_form_alter($form_id, &$form) {
+  if ($form_id != 'devel_admin_settings') {
+    return;
+  }
+  // Shift system_settings_form buttons.
+  $weight = isset($form['buttons']['#weight']) ? $form['buttons']['#weight'] : 0;
+  $form['buttons']['#weight'] = $weight + 1;
+
+  $form['admin_menu'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Administration menu settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+  $display_options = array('mid', 'weight', 'pid');
+  $display_options = array(0 => t('None'), 'mid' => t('Menu link ID'), 'weight' => t('Weight'), 'pid' => t('Parent link ID'));
+  $form['admin_menu']['admin_menu_display'] = array(
+    '#type' => 'radios',
+    '#title' => t('Display additional data for each menu item'),
+    '#default_value' => variable_get('admin_menu_display', 0),
+    '#options' => $display_options,
+    '#description' => t('Display the selected items next to each menu item link.'),
+  );
+  $form['admin_menu']['admin_menu_show_all'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Display all menu items'),
+    '#default_value' => variable_get('admin_menu_show_all', 0),
+    '#description' => t('If enabled, all menu items are displayed regardless of your site permissions. <em>Note: Do not enable on a production site.</em>'),
+  );
+}
+
+/**
+ * Menu callback; Enable/disable developer modules.
+ *
+ * This can save up to 150ms on each uncached page request.
+ */
+function _admin_menu_toggle_modules() {
+  $saved_state = variable_get('admin_menu_devel_modules_enabled', NULL);
+  if (isset($saved_state)) {
+    // Re-enable modules that were enabled before.
+    module_enable($saved_state);
+    variable_del('admin_menu_devel_modules_enabled');
+    drupal_set_message(t('Enabled these modules: !module-list.', array('!module-list' => implode(', ', $saved_state))));
+  }
+  else {
+    // Allow site admins to override this variable via settings.php.
+    $devel_modules = variable_get('admin_menu_devel_modules', array('cache_disable', 'coder', 'content_copy', 'debug', 'delete_all', 'demo', 'devel', 'devel_node_access', 'devel_themer', 'macro', 'form_controller', 'imagecache_ui', 'journal', 'trace', 'upgrade_status', 'user_display_ui', 'util', 'views_ui', 'views_theme_wizard'));
+    // Store currently enabled modules in a variable.
+    $devel_modules = array_intersect(module_list(FALSE, FALSE), $devel_modules);
+    if (!empty($devel_modules)) {
+      variable_set('admin_menu_devel_modules_enabled', $devel_modules);
+      // Disable developer modules.
+      module_disable($devel_modules);
+      drupal_set_message(t('Disabled these modules: !module-list.', array('!module-list' => implode(', ', $devel_modules))));
+    }
+    else {
+      drupal_set_message(t('No developer modules are enabled.'));
+    }
+  }
+  drupal_goto(referer_uri());
+}
+
+/**
+ * Render an icon to display in the administration menu.
  *
  * @ingroup themeable
  */
 function theme_admin_menu_icon() {
-  return '<img class="admin-menu-icon" src="'. (theme_get_setting('toggle_favicon') ? theme_get_setting('favicon') : base_path() .'misc/favicon.ico') .'" width="16" height="16" alt="'. t('Home') .'" />';
+  return '<img class="admin-menu-icon" src="' . (theme_get_setting('toggle_favicon') ? theme_get_setting('favicon') : base_path() . 'misc/favicon.ico') . '" width="16" height="16" alt="' . t('Home') . '" />';
 }
 
