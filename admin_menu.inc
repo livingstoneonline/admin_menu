@@ -154,7 +154,9 @@ function admin_menu_adjust_items(&$_admin_menu) {
   admin_menu_remove_item($_admin_menu, 'admin/by-task');
 
   // Add system update links.
-  admin_menu_add_item($_admin_menu, $mid_icon, array('title' => t('Run cron'), 'path' => 'admin/logs/status/run-cron', 'weight' => 50, 'query' => drupal_get_destination()));
+  if (user_access('administer site configuration')) {
+    admin_menu_add_item($_admin_menu, $mid_icon, array('title' => t('Run cron'), 'path' => 'admin/logs/status/run-cron', 'weight' => 50, 'query' => drupal_get_destination()));
+  }
   if ($user->uid == 1) {
     admin_menu_add_item($_admin_menu, $mid_icon, array('title' => t('Run updates'), 'path' => $base_url . '/update.php', 'weight' => 50));
   }
