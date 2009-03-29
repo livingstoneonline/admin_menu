@@ -2,21 +2,26 @@
 
 Drupal.behaviors = Drupal.behaviors || {}; // D5 only.
 
-Drupal.adminMenu = Drupal.adminMenu || {};
+Drupal.admin = Drupal.admin || { behaviors: {} };
 
 /**
  * Core behavior for Administration menu.
  *
- * This tests whether there is an administration menu is in the output and
- * executes all registered behaviors.
+ * Test whether there is an administration menu is in the output and execute all
+ * registered behaviors.
  */
 Drupal.behaviors.adminMenu = function (context) {
-  var $adminMenu = $('#admin-menu');
-  if ($adminMenu.size()) {
-    $.each(Drupal.adminMenu, function() {
-      this(context, $adminMenu);
-    });
-  }
+  // Initialize settings.
+  Drupal.settings.admin_menu = $.extend({
+    margin_top: false,
+    position_fixed: false,
+    tweak_modules: false,
+    tweak_tabs: false,
+    destination: ''
+  }, Drupal.settings.admin_menu || {});
+  var $adminMenu = $('#admin-menu:not(.admin-menu-processed)', context);
+  // Apply our behaviors.
+  Drupal.admin.attachBehaviors(context, $adminMenu);
 };
 
 /**
@@ -25,25 +30,46 @@ Drupal.behaviors.adminMenu = function (context) {
  * For why multiple selectors see #111719.
  */
 Drupal.behaviors.adminMenuCollapseModules = function (context) {
-  if (Drupal.settings.admin_menu && Drupal.settings.admin_menu.tweak_modules) {
+  if (Drupal.settings.admin_menu.tweak_modules) {
     $('#system-modules fieldset:not(.collapsed), #system-modules-1 fieldset:not(.collapsed)', context).addClass('collapsed');
   }
 };
 
 /**
- * Apply 'margin-top'; directly applying marginTop does not work in IE.
+ * Apply margin to page.
+ *
+ * Note that directly applying marginTop does not work in IE. To prevent
+ * flickering/jumping page content with client-side caching, this is a regular
+ * Drupal behavior.
  */
-Drupal.adminMenu.marginTop = function (context, $adminMenu) {
-  if (Drupal.settings.admin_menu && Drupal.settings.admin_menu.margin_top) {
+Drupal.behaviors.adminMenuMarginTop = function (context) {
+  if (Drupal.settings.admin_menu.margin_top) {
     $('body', context).addClass('admin-menu');
+  }
+};
+
+/**
+ * @defgroup admin_behaviors Administration behaviors.
+ * @{
+ */
+
+/**
+ * Attach administrative behaviors.
+ */
+Drupal.admin.attachBehaviors = function (context, $adminMenu) {
+  if ($adminMenu.length) {
+    $adminMenu.addClass('admin-menu-processed');
+    $.each(Drupal.admin.behaviors, function() {
+      this(context, $adminMenu);
+    });
   }
 };
 
 /**
  * Apply 'position: fixed'.
  */
-Drupal.adminMenu.positionFixed = function (context, $adminMenu) {
-  if (Drupal.settings.admin_menu && Drupal.settings.admin_menu.position_fixed) {
+Drupal.admin.behaviors.positionFixed = function (context, $adminMenu) {
+  if (Drupal.settings.admin_menu.position_fixed) {
     $adminMenu.css('position', 'fixed');
   }
 };
@@ -51,8 +77,8 @@ Drupal.adminMenu.positionFixed = function (context, $adminMenu) {
 /**
  * Move page tabs into administration menu.
  */
-Drupal.adminMenu.pageTabs = function (context, $adminMenu) {
-  if (Drupal.settings.admin_menu && Drupal.settings.admin_menu.tweak_tabs) {
+Drupal.admin.behaviors.pageTabs = function (context, $adminMenu) {
+  if (Drupal.settings.admin_menu.tweak_tabs) {
     $('ul.tabs.primary li', context).addClass('admin-menu-tab').appendTo('#admin-menu > ul');
     $('ul.tabs.secondary', context).appendTo('#admin-menu > ul > li.admin-menu-tab.active');
     $('ul.tabs.primary', context).remove();
@@ -62,8 +88,8 @@ Drupal.adminMenu.pageTabs = function (context, $adminMenu) {
 /**
  * Inject destination query strings for current page.
  */
-Drupal.adminMenu.destination = function (context, $adminMenu) {
-  if (Drupal.settings.admin_menu && Drupal.settings.admin_menu.destination) {
+Drupal.admin.behaviors.destination = function (context, $adminMenu) {
+  if (Drupal.settings.admin_menu.destination) {
     $('.admin-menu-destination', $adminMenu).each(function() {
       this.search += (!this.search.length ? '?' : '&') + Drupal.settings.admin_menu.destination;
     });
@@ -76,7 +102,7 @@ Drupal.adminMenu.destination = function (context, $adminMenu) {
  * @todo This has to run last.  If another script registers additional behaviors
  *   it will not run last.
  */
-Drupal.adminMenu.hover = function (context, $adminMenu) {
+Drupal.admin.behaviors.hover = function (context, $adminMenu) {
   // Hover emulation for IE 6.
   if ($.browser.msie && parseInt(jQuery.browser.version) == 6) {
     $('li', $adminMenu).hover(function() {
@@ -104,10 +130,15 @@ Drupal.adminMenu.hover = function (context, $adminMenu) {
 };
 
 /**
+ * @} End of "defgroup admin_behaviors".
+ */
+
+/**
  * D5 only: Queue our attach behavior.
  */
 $(function() {
   Drupal.behaviors.adminMenu(document);
+  Drupal.behaviors.adminMenuMarginTop(document);
   Drupal.behaviors.adminMenuCollapseModules(document);
 });
 

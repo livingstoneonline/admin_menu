@@ -45,6 +45,7 @@ function admin_menu_perm() {
 function admin_menu_menu($may_cache) {
   $items = array();
   if ($may_cache) {
+    // Module settings.
     $items[] = array(
       'path' => 'admin/settings/admin_menu',
       'title' => t('Administration menu'),
@@ -53,6 +54,7 @@ function admin_menu_menu($may_cache) {
       'callback arguments' => array('admin_menu_theme_settings'),
       'access' => user_access('administer site configuration'),
     );
+    // Menu link callbacks.
     $items[] = array(
       'path' => 'admin_menu/toggle-modules',
       'callback' => 'admin_menu_toggle_modules',
@@ -60,32 +62,36 @@ function admin_menu_menu($may_cache) {
       'type' => MENU_CALLBACK,
     );
   }
-  elseif (user_access('access administration menu')) {
-    $path = drupal_get_path('module', 'admin_menu');
-    drupal_add_css($path . '/admin_menu.css', 'module', 'all', FALSE);
-    // Performance: Defer execution.
-    drupal_add_js($path . '/admin_menu.js', 'module', 'header', TRUE);
-
-    // The destination query string for the current page is applied via JS.
-    drupal_add_js(array('admin_menu' => array('destination' => drupal_get_destination())), 'setting');
-
-    if ($setting = variable_get('admin_menu_margin_top', 1)) {
-      drupal_add_js(array('admin_menu' => array('margin_top' => $setting)), 'setting');
-    }
-    if ($setting = variable_get('admin_menu_position_fixed', 0)) {
-      drupal_add_js(array('admin_menu' => array('position_fixed' => $setting)), 'setting');
-    }
-    if ($setting = variable_get('admin_menu_tweak_tabs', 0)) {
-      drupal_add_js(array('admin_menu' => array('tweak_tabs' => $setting)), 'setting');
-    }
-    if ($_GET['q'] == 'admin/build/menu' && variable_get('admin_menu_tweak_menu', 0)) {
-      drupal_add_js($path . '/admin_menu.menu.js');
-      drupal_add_js('misc/collapse.js');
-    }
-    else if ($_GET['q'] == 'admin/build/modules') {
-      drupal_add_js(array('admin_menu' => array('tweak_modules' => variable_get('admin_menu_tweak_modules', 0))), 'setting');
-    }
+  elseif (!user_access('access administration menu')) {
+    return;
   }
+  $path = drupal_get_path('module', 'admin_menu');
+  drupal_add_css($path . '/admin_menu.css', 'module', 'all', FALSE);
+  // Performance: Defer execution.
+  drupal_add_js($path . '/admin_menu.js', 'module', 'header', TRUE);
+
+  // Destination query strings are applied via JS.
+  $settings['destination'] = drupal_get_destination();
+
+  if ($setting = variable_get('admin_menu_margin_top', 1)) {
+    $settings['margin_top'] = $setting;
+  }
+  if ($setting = variable_get('admin_menu_position_fixed', 0)) {
+    $settings['position_fixed'] = $setting;
+  }
+  if ($setting = variable_get('admin_menu_tweak_tabs', 0)) {
+    $settings['tweak_tabs'] = $setting;
+  }
+  if ($_GET['q'] == 'admin/build/menu' && variable_get('admin_menu_tweak_menu', 0)) {
+    drupal_add_js($path . '/admin_menu.menu.js');
+    drupal_add_js('misc/collapse.js');
+  }
+  elseif ($_GET['q'] == 'admin/build/modules') {
+    $settings['tweak_modules'] = variable_get('admin_menu_tweak_modules', 0);
+  }
+
+  drupal_add_js(array('admin_menu' => $settings), 'setting');
+
   if ($_GET['q'] == 'admin/settings/admin_menu' || $_GET['q'] == 'admin/settings/devel') {
     require_once drupal_get_path('module', 'admin_menu') . '/admin_menu.inc';
   }
@@ -123,7 +129,7 @@ function admin_menu_footer($main = 0) {
 
   $cid = "$user->uid:$locale:admin_menu:output";
 
-  // Try to load and output administration menu from cache.
+  // Try to load and output administration menu from server-side cache.
   $cache = cache_get($cid, 'cache_menu');
   if ($cache) {
     return $cache->data;
@@ -146,7 +152,7 @@ function admin_menu_footer($main = 0) {
   $content .= theme_admin_menu_tree($mid_admin);
   $content .= '</div>';
 
-  // Cache the menu for this user, to expire after one day.
+  // Cache the menu for this user.
   cache_set($cid, 'cache_menu', $content, time() + (60 * 60 * 24));
 
   return $content;
