@@ -13,15 +13,37 @@ Drupal.admin = Drupal.admin || { behaviors: {} };
 Drupal.behaviors.adminMenu = function (context) {
   // Initialize settings.
   Drupal.settings.admin_menu = $.extend({
+    suppress: false,
     margin_top: false,
     position_fixed: false,
     tweak_modules: false,
     tweak_tabs: false,
-    destination: ''
+    destination: '',
+    basePath: Drupal.settings.basePath,
+    hash: 0
   }, Drupal.settings.admin_menu || {});
+  // Check whether administration menu should be suppressed.
+  if (Drupal.settings.admin_menu.suppress) {
+    return;
+  }
   var $adminMenu = $('#admin-menu:not(.admin-menu-processed)', context);
-  // Apply our behaviors.
-  Drupal.admin.attachBehaviors(context, $adminMenu);
+  // Client-side caching; if administration menu is not in the output, it is
+  // fetched from the server and cached in the browser.
+  if (!$adminMenu.length && Drupal.settings.admin_menu.hash) {
+    Drupal.admin.getCache(Drupal.settings.admin_menu.hash, function (response) {
+      if (typeof response == 'string' && response.length > 0) {
+        $('body', context).prepend(response);
+      }
+      var $adminMenu = $('#admin-menu:not(.admin-menu-processed)', context);
+      // Apply our behaviors.
+      Drupal.admin.attachBehaviors(context, $adminMenu);
+    });
+  }
+  // If the menu is in the output already, this means there is a new version.
+  else {
+    // Apply our behaviors.
+    Drupal.admin.attachBehaviors(context, $adminMenu);
+  }
 };
 
 /**
@@ -47,6 +69,25 @@ Drupal.behaviors.adminMenuMarginTop = function (context) {
     $('body', context).addClass('admin-menu');
   }
 };
+
+/**
+ * Retrieve content from client-side cache.
+ *
+ * @param hash
+ *   The md5 hash of the content to retrieve.
+ * @param onSuccess
+ *   A callback function invoked when the cache request was successful.
+ */
+Drupal.admin.getCache = function (hash, onSuccess) {
+  $.ajax({
+    cache: true,
+    type: 'GET',
+    dataType: 'text', // Prevent auto-evaluation of response.
+    global: false, // Do not trigger global AJAX events.
+    url: Drupal.settings.admin_menu.basePath + 'js/admin_menu/cache/' + hash,
+    success: onSuccess
+  });
+}
 
 /**
  * @defgroup admin_behaviors Administration behaviors.
@@ -136,9 +177,15 @@ Drupal.admin.behaviors.hover = function (context, $adminMenu) {
 /**
  * D5 only: Queue our attach behavior.
  */
-$(function() {
-  Drupal.behaviors.adminMenu(document);
-  Drupal.behaviors.adminMenuMarginTop(document);
-  Drupal.behaviors.adminMenuCollapseModules(document);
+$(document).ready(function () {
+  if (Drupal.jsEnabled) {
+    // 'js enabled' cookie.
+    document.cookie = 'has_js=1; path=/';
+  }
+  if (Drupal.attachBehaviors === undefined) {
+    Drupal.behaviors.adminMenu(this);
+    Drupal.behaviors.adminMenuMarginTop(this);
+    Drupal.behaviors.adminMenuCollapseModules(this);
+  }
 });
 

@@ -45,6 +45,13 @@ function admin_menu_perm() {
 function admin_menu_menu($may_cache) {
   $items = array();
   if ($may_cache) {
+    // AJAX callback.
+    $items[] = array(
+      'path' => 'js/admin_menu/cache',
+      'callback' => 'admin_menu_js_cache',
+      'access' => user_access('access administration menu'),
+      'type' => MENU_CALLBACK,
+    );
     // Module settings.
     $items[] = array(
       'path' => 'admin/settings/admin_menu',
@@ -61,10 +68,17 @@ function admin_menu_menu($may_cache) {
       'access' => user_access('administer site configuration'),
       'type' => MENU_CALLBACK,
     );
-  }
-  elseif (!user_access('access administration menu')) {
     return;
   }
+  if (!user_access('access administration menu') || admin_menu_suppress(FALSE)) {
+    return;
+  }
+  // Performance: Skip this entirely for AJAX requests.
+  if (strpos($_GET['q'], 'js/') === 0) {
+    return;
+  }
+  global $user, $locale;
+
   $path = drupal_get_path('module', 'admin_menu');
   drupal_add_css($path . '/admin_menu.css', 'module', 'all', FALSE);
   // Performance: Defer execution.
@@ -72,6 +86,17 @@ function admin_menu_menu($may_cache) {
 
   // Destination query strings are applied via JS.
   $settings['destination'] = drupal_get_destination();
+
+  // Hash for client-side HTTP/AJAX caching.
+  $cid = 'admin_menu:' . $user->uid . ':' . $locale;
+  if (!empty($_COOKIE['has_js']) && ($hash = admin_menu_cache_get($cid))) {
+    $settings['hash'] = $hash;
+    // The base path to use for cache requests depends on whether clean URLs
+    // are enabled, whether Drupal runs in a sub-directory, and on the language
+    // system configuration. url() already provides us the proper path, but we
+    // additionally need to ensure that it ends with a slash.
+    $settings['basePath'] = rtrim(url(''), '/') . '/';
+  }
 
   if ($setting = variable_get('admin_menu_margin_top', 1)) {
     $settings['margin_top'] = $setting;
@@ -90,6 +115,7 @@ function admin_menu_menu($may_cache) {
     $settings['tweak_modules'] = variable_get('admin_menu_tweak_modules', 0);
   }
 
+  drupal_add_js(array('basePath' => base_path()), 'setting');
   drupal_add_js(array('admin_menu' => $settings), 'setting');
 
   if ($_GET['q'] == 'admin/settings/admin_menu' || $_GET['q'] == 'admin/settings/devel') {
@@ -112,8 +138,10 @@ function admin_menu_menu($may_cache) {
  */
 function admin_menu_suppress($set = TRUE) {
   static $suppress = FALSE;
-  if (!empty($set)) {
+  // drupal_add_js() must only be invoked once.
+  if (!empty($set) && $suppress === FALSE) {
     $suppress = TRUE;
+    drupal_add_js(array('admin_menu' => array('suppress' => 1)), 'setting');
   }
   return $suppress;
 }
@@ -127,35 +155,131 @@ function admin_menu_footer($main = 0) {
   }
   global $user, $locale;
 
-  $cid = "$user->uid:$locale:admin_menu:output";
+  // @todo How does this work in D5? :)
+  // Determine whether we need to rebuild.
+  $rebuild = variable_get('admin_menu_rebuild_links', FALSE);
+  $cid = 'admin_menu:' . $user->uid . ':' . $locale;
+
+  // Do nothing at all here if the client supports client-side caching, no
+  // rebuild is needed, the user has a hash, and is NOT requesting the cache
+  // update path. Consult the hash cache last, since it requires a DB request.
+  // @todo Implement a sanity-check to prevent permanent double requests; i.e.
+  //   what if the client-side cache fails for any reason and performs a second
+  //   request on every page?
+  if (!empty($_COOKIE['has_js']) && !$rebuild && strpos($_GET['q'], 'js/admin_menu/cache') !== 0) {
+    if (admin_menu_cache_get($cid)) {
+      return;
+    }
+  }
 
   // Try to load and output administration menu from server-side cache.
   $cache = cache_get($cid, 'cache_menu');
-  if ($cache) {
-    return $cache->data;
+  if ($cache && isset($cache->data)) {
+    $content = $cache->data;
   }
 
   // Rebuild the output.
-  global $_menu;
+  if (!isset($content)) {
+    global $_menu;
 
-  // Get item id of /q=admin, which we suppose to be the root for admin menu.
-  $mid_admin = $_menu['path index']['admin'];
-  $_admin_menu = &admin_menu_get_menu($mid_admin);
+    // Get item id of /q=admin, which we suppose to be the root for admin menu.
+    $mid_admin = $_menu['path index']['admin'];
+    $_admin_menu = &admin_menu_get_menu($mid_admin);
 
-  // Allow other modules to integrate with admin_menu (uncached).
-  foreach (module_implements('admin_menu') as $module) {
-    $function = $module . '_admin_menu';
-    $function($_admin_menu, FALSE);
+    // Allow other modules to integrate with admin_menu (uncached).
+    foreach (module_implements('admin_menu') as $module) {
+      $function = $module . '_admin_menu';
+      $function($_admin_menu, FALSE);
+    }
+
+    $content  = '<div id="admin-menu">';
+    $content .= theme_admin_menu_tree($mid_admin);
+    $content .= '</div>';
+
+    // Cache the menu for this user.
+    cache_set($cid, 'cache_menu', $content, time() + (60 * 60 * 24));
   }
 
-  $content  = '<div id="admin-menu">';
-  $content .= theme_admin_menu_tree($mid_admin);
-  $content .= '</div>';
-
-  // Cache the menu for this user.
-  cache_set($cid, 'cache_menu', $content, time() + (60 * 60 * 24));
+  // Store the new hash for this user.
+  if (!empty($_COOKIE['has_js'])) {
+    admin_menu_cache_set($cid, md5($content));
+  }
 
   return $content;
+}
+
+/**
+ * Retrieve a client-side cache hash from cache.
+ *
+ * The hash cache is consulted more than once per request; we therefore cache
+ * the results statically to avoid multiple database requests.
+ *
+ * This should only be used for client-side cache hashes. Use cache_menu for
+ * administration menu content.
+ *
+ * @param $cid
+ *   The cache ID of the data to retrieve.
+ */
+function admin_menu_cache_get($cid) {
+  static $cache = array();
+
+  if (!array_key_exists($cid, $cache)) {
+    $cache[$cid] = cache_get($cid, 'cache_admin_menu');
+    if ($cache[$cid] && isset($cache[$cid]->data)) {
+      $cache[$cid] = $cache[$cid]->data;
+    }
+  }
+
+  return $cache[$cid];
+}
+
+/**
+ * Store a client-side cache hash in persistent cache.
+ *
+ * This should only be used for client-side cache hashes. Use cache_menu for
+ * administration menu content.
+ *
+ * @param $cid
+ *   The cache ID of the data to retrieve.
+ */
+function admin_menu_cache_set($cid, $data) {
+  cache_set($cid, 'cache_admin_menu', $data);
+}
+
+/**
+ * Menu callback; Output administration menu for HTTP caching via AJAX request.
+ */
+function admin_menu_js_cache($hash = NULL) {
+  // Fetch the menu.
+  $content = admin_menu_footer();
+
+  // @todo According to http://www.mnot.net/blog/2006/05/11/browser_caching,
+  //   IE will only cache the content when it is compressed.
+  // Determine if the client accepts gzipped data.
+  if (isset($_SERVER['HTTP_ACCEPT_ENCODING']) && function_exists('gzencode')) {
+    if (strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== FALSE) {
+      $encoding = 'gzip';
+    }
+    elseif (strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'x-gzip') !== FALSE) {
+      $encoding = 'x-gzip';
+    }
+    if (!empty($encoding)) {
+      header('Vary: Accept-Encoding');
+      header('Content-Encoding: ' . $encoding);
+      $content = gzencode($content, 9, FORCE_GZIP);
+    }
+  }
+
+  $expires = time() + (3600 * 24 * 365);
+  header('Expires: ' . gmdate('D, d M Y H:i:s', $expires) . ' GMT');
+  header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+  header('Cache-Control: max-age=' . $expires);
+  header('Content-Length: ' . strlen($content));
+
+  // Suppress Devel module.
+  $GLOBALS['devel_shutdown'] = FALSE;
+  echo $content;
+  exit;
 }
 
 /**
@@ -176,7 +300,7 @@ function &admin_menu_get_menu($mid_admin = 5) {
   }
   global $user, $locale;
 
-  $cid = "$user->uid:$locale:admin_menu";
+  $cid = $user->uid . ':' . $locale . ':admin_menu';
   $cache = cache_get($cid, 'cache_menu');
   // Check if cache is an array needed to distinguish between v5.x-1.2 and later
   // versions.
@@ -439,7 +563,7 @@ if (module_exists('devel') && !function_exists('devel_admin_menu')) {
  */
 function admin_menu_clear_cache() {
   // cache_clear_all() does not support a leading wildcard.
-  db_query("DELETE FROM {cache_menu} WHERE cid LIKE '%%:admin_menu'");
+  db_query("DELETE FROM {cache_menu} WHERE cid LIKE '%%:admin_menu%%'");
 }
 
 /**
