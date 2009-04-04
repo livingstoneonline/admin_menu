@@ -98,6 +98,11 @@ function admin_menu_menu($may_cache) {
     $settings['basePath'] = rtrim(url(''), '/') . '/';
   }
 
+  $replacements = module_invoke_all('admin_menu_replacements');
+  if (!empty($replacements)) {
+    $settings['replacements'] = $replacements;
+  }
+
   if ($setting = variable_get('admin_menu_margin_top', 1)) {
     $settings['margin_top'] = $setting;
   }
@@ -280,6 +285,30 @@ function admin_menu_js_cache($hash = NULL) {
   $GLOBALS['devel_shutdown'] = FALSE;
   echo $content;
   exit;
+}
+
+/**
+ * Implementation of hook_admin_menu_replacements().
+ */
+function admin_menu_admin_menu_replacements() {
+  $items = array();
+  if ($user_count = admin_menu_get_user_count()) {
+    $items['.admin-menu-users a'] = $user_count;
+  }
+  return $items;
+}
+
+/**
+ * Return count of online anonymous/authenticated users.
+ *
+ * @see user_block(), user.module
+ */
+function admin_menu_get_user_count() {
+  $interval = time() - variable_get('user_block_seconds_online', 900);
+  $count_anon = sess_count($interval);
+  $count_auth = db_result(db_query("SELECT COUNT(DISTINCT uid) FROM {sessions} WHERE uid > 0 AND timestamp >= %d", $interval));
+
+  return t('@count-anon / @count-auth', array('@count-anon' => $count_anon, '@count-auth' => $count_auth));
 }
 
 /**
@@ -492,19 +521,13 @@ function admin_menu_add_item(&$_admin_menu, $pid, $item) {
 function admin_menu_admin_menu(&$admin_menu, $may_cache) {
   if (!$may_cache) {
     // Add count of active anonymous/authenticated users.
-    // @see user_block(), user.module
-    $interval   = time() - variable_get('user_block_seconds_online', 900);
-    $count_anon = sess_count($interval);
-    $count_auth = db_result(db_query("SELECT COUNT(DISTINCT uid) FROM {sessions} WHERE uid > 0 AND timestamp >= %d", $interval));
-
     $mid_admin  = $admin_menu['index']['admin'];
-    $title      = t('Current anonymous / authenticated users');
-    $icon_users = '<img src="' . base_path() . drupal_get_path('module', 'admin_menu') . '/images/icon_users.png" width="16" height="15" alt="' . $title . '" title="' . $title . '" />';
     admin_menu_add_item($admin_menu, $mid_admin, array(
-      'title' => $count_anon . ' / ' . $count_auth . ' ' . $icon_users,
-      'path' => user_access('administer users') ? 'admin/user/user' : drupal_get_normal_path(variable_get('site_frontpage', 'node')),
+      'title' => admin_menu_get_user_count(),
+      'description' => t('Current anonymous / authenticated users'),
+      'path' => 'user',
       'weight' => -90,
-      'class' => 'admin-menu-action admin-menu-icon admin-menu-users',
+      'class' => 'admin-menu-action admin-menu-users',
     ));
   }
 }
