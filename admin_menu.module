@@ -120,7 +120,6 @@ function admin_menu_menu($may_cache) {
     $settings['tweak_modules'] = variable_get('admin_menu_tweak_modules', 0);
   }
 
-  drupal_add_js(array('basePath' => base_path()), 'setting');
   drupal_add_js(array('admin_menu' => $settings), 'setting');
 
   if ($_GET['q'] == 'admin/settings/admin_menu' || $_GET['q'] == 'admin/settings/devel') {

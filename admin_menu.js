@@ -19,7 +19,7 @@ Drupal.behaviors.adminMenu = function (context) {
     tweak_modules: false,
     tweak_tabs: false,
     destination: '',
-    basePath: Drupal.settings.basePath,
+    basePath: '/',
     hash: 0,
     replacements: {}
   }, Drupal.settings.admin_menu || {});

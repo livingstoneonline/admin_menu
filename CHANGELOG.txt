@@ -6,6 +6,8 @@ Admin Menu x.x-x.x, xxxx-xx-xx
 
 Admin Menu 5.x-3.x, xxxx-xx-xx
 ------------------------------
+#345984 by sun: Fixed array_merge_recursive error due to multiple definitions of
+  Drupal.settings.basePath.
 #420828 by sun: Added dynamic replacements for cached administration menu.
 #420840 by sun: Fixed Drupal.behaviors.adminMenu must be only executed once.
 #345984 by markus_petrux, sun: Added client-side caching of administration menu.
