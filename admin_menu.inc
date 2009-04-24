@@ -23,20 +23,26 @@ function admin_menu_build(&$_admin_menu, $mid_admin) {
   global $_menu;
   $_admin_menu = array();
 
-  // Temporary access permission fix for root menu items until #126621 is
-  // committed to Drupal core.
-  foreach ($_menu['items'][$mid_admin]['children'] as $key => $parent) {
-    if ($_menu['items'][$parent]['access'] != FALSE || !isset($_menu['items'][$parent]['children'])) {
+  // Fix access permissions for root (category) menu items in Drupal core.
+  foreach ($_menu['items'][$mid_admin]['children'] as $pid) {
+    // Nothing to do, if item is accessible or contains no children.
+    if ($_menu['items'][$pid]['access'] != FALSE || !isset($_menu['items'][$pid]['children'])) {
       continue;
     }
+    // Make parent accessible if there is any accessible second level child.
     $is_accessible = FALSE;
-    foreach ($_menu['items'][$parent]['children'] as $key => $child) {
+    foreach ($_menu['items'][$pid]['children'] as $child) {
       if ($_menu['items'][$child]['access'] == TRUE) {
         $is_accessible = TRUE;
       }
     }
     if ($is_accessible) {
-      $_menu['items'][$parent]['access'] = TRUE;
+      // Since we are overriding system.module's real access values and many
+      // modules simply depend on its ill access permissions ('administer site
+      // configuration'), we assign not TRUE, but the integer 1 instead, so
+      // _admin_menu_get_children() is able to properly inherit access
+      // permissions for sub-items that do not define access.
+      $_menu['items'][$pid]['access'] = 1;
     }
   }
 
@@ -77,7 +83,22 @@ function _admin_menu_get_children(&$_admin_menu, &$item) {
     foreach ($item['children'] as $child) {
       // Check access permissions.
       if (!variable_get('admin_menu_show_all', 0)) {
-        $item_is_accessible = !isset($_menu['items'][$child]['access']) || (isset($_menu['items'][$child]['access']) && $_menu['items'][$child]['access']);
+        $item_is_accessible = FALSE;
+        if (!isset($_menu['items'][$child]['access'])) {
+          // If parent item is one of the admin categories and uses our custom
+          // 'access' value defined in admin_menu_build(), then it is not
+          // accessible.
+          if (isset($item['access']) && $item['access'] === 1) {
+            $item_is_accessible = $_menu['items'][$child]['access'] = FALSE;
+          }
+          // Otherwise, inherit access from parent item.
+          elseif (isset($item['access']) && $item['access']) {
+            $item_is_accessible = TRUE;
+          }
+        }
+        else {
+          $item_is_accessible = $_menu['items'][$child]['access'];
+        }
       }
       else {
         $item_is_accessible = TRUE;
@@ -86,8 +107,6 @@ function _admin_menu_get_children(&$_admin_menu, &$item) {
       $item_is_visible = $_menu['items'][$child]['type'] & (MENU_VISIBLE_IN_TREE | MENU_IS_LOCAL_TASK);
 
       // Create the child item if it is accessible and visible.
-      // Additional condition to hide items linking to parent:
-      //   && !($_menu['items'][$child]['type'] & MENU_LINKS_TO_PARENT)
       if ($item_is_accessible && $item_is_visible) {
         $_admin_menu[$child] = $_menu['items'][$child];
         admin_menu_item_url($_admin_menu, $child);
