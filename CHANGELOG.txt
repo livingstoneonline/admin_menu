@@ -6,6 +6,7 @@ Admin Menu x.x-x.x, xxxx-xx-xx
 
 Admin Menu 5.x-3.x, xxxx-xx-xx
 ------------------------------
+#167020 by sun: Fixed some accessible menu items are no longer displayed.
 #420806 by sun: Fixed admin_menu not always rebuilt when menu is rebuilt.
 #345984 by sun: Fixed admin_menu's settings item not displayed.
 #167020 by sun: Fixed inaccessible menu items are displayed.

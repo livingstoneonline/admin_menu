@@ -26,7 +26,7 @@ function admin_menu_build(&$_admin_menu, $mid_admin) {
   // Fix access permissions for root (category) menu items in Drupal core.
   foreach ($_menu['items'][$mid_admin]['children'] as $pid) {
     // Nothing to do, if item is accessible or contains no children.
-    if ($_menu['items'][$pid]['access'] != FALSE || !isset($_menu['items'][$pid]['children'])) {
+    if (!isset($_menu['items'][$pid]['access']) || $_menu['items'][$pid]['access'] != FALSE || !isset($_menu['items'][$pid]['children'])) {
       continue;
     }
     // Make parent accessible if there is any accessible second level child.
@@ -94,6 +94,10 @@ function _admin_menu_get_children(&$_admin_menu, &$item) {
           // Otherwise, inherit access from parent item.
           elseif (isset($item['access']) && $item['access']) {
             $item_is_accessible = TRUE;
+          }
+          // Or fallback to regular, advanced access check of the menu system.
+          else {
+            $item_is_accessible = _menu_item_is_accessible($child);
           }
         }
         else {
