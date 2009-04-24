@@ -68,6 +68,7 @@ function admin_menu_menu($may_cache) {
       'access' => user_access('administer site configuration'),
       'type' => MENU_CALLBACK,
     );
+    admin_menu_clear_cache();
     return $items;
   }
   if (!user_access('access administration menu') || admin_menu_suppress(FALSE)) {
@@ -159,7 +160,6 @@ function admin_menu_footer($main = 0) {
   }
   global $user, $locale;
 
-  // @todo How does this work in D5? :)
   // Determine whether we need to rebuild.
   $rebuild = variable_get('admin_menu_rebuild_links', FALSE);
   $cid = 'admin_menu:' . $user->uid . ':' . $locale;
@@ -178,7 +178,7 @@ function admin_menu_footer($main = 0) {
 
   // Try to load and output administration menu from server-side cache.
   $cache = cache_get($cid, 'cache_menu');
-  if ($cache && isset($cache->data)) {
+  if (!$rebuild && $cache && isset($cache->data)) {
     $content = $cache->data;
   }
 
@@ -202,6 +202,7 @@ function admin_menu_footer($main = 0) {
 
     // Cache the menu for this user.
     cache_set($cid, 'cache_menu', $content, time() + (60 * 60 * 24));
+    variable_del('admin_menu_rebuild_links');
   }
 
   // Store the new hash for this user.
@@ -585,7 +586,9 @@ if (module_exists('devel') && !function_exists('devel_admin_menu')) {
  */
 function admin_menu_clear_cache() {
   // cache_clear_all() does not support a leading wildcard.
-  db_query("DELETE FROM {cache_menu} WHERE cid LIKE '%%:admin_menu%%'");
+  db_query("DELETE FROM {cache_menu} WHERE cid LIKE '%%admin_menu%%'");
+  db_query("DELETE FROM {cache_admin_menu}");
+  variable_set('admin_menu_rebuild_links', TRUE);
 }
 
 /**
