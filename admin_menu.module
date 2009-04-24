@@ -68,14 +68,14 @@ function admin_menu_menu($may_cache) {
       'access' => user_access('administer site configuration'),
       'type' => MENU_CALLBACK,
     );
-    return;
+    return $items;
   }
   if (!user_access('access administration menu') || admin_menu_suppress(FALSE)) {
-    return;
+    return $items;
   }
   // Performance: Skip this entirely for AJAX requests.
   if (strpos($_GET['q'], 'js/') === 0) {
-    return;
+    return $items;
   }
   global $user, $locale;
 
