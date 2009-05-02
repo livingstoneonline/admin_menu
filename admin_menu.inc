@@ -213,31 +213,30 @@ function admin_menu_adjust_items(&$_admin_menu) {
       'path' => $_menu['items'][$mid_user]['path'],
       'weight' => -99,
       'class' => 'admin-menu-action',
-    ));
+    ), $mid_user);
     $mid_logout = $_menu['path index']['logout'];
     admin_menu_add_item($_admin_menu, $mid_admin, array(
       'title' => t('Logout'),
       'path' => $_menu['items'][$mid_logout]['path'],
       'weight' => -100,
       'class' => 'admin-menu-action',
-    ));
+    ), $mid_logout);
   }
 
   // Add 'Create <content_type>' menu items to Content management > Content.
   // If an user does not have 'administer nodes' permission, we need to copy
   // the 'Create content' item from the Navigation menu into 'Content
   // management' and append node/add/* items there instead.
+  $mid_node_add = $_menu['path index']['node/add'];
   if (!user_access('administer nodes')) {
     $mid_content_management = $_admin_menu['index']['admin/content'];
-    $mid_node_add = $_menu['path index']['node/add'];
     $create_content = $_menu['items'][$mid_node_add];
     $create_content['weight'] = 0;
-    $mid_content = admin_menu_add_item($_admin_menu, $mid_content_management, $create_content);
+    $mid_content = admin_menu_add_item($_admin_menu, $mid_content_management, $create_content, $mid_node_add);
   }
   else {
     $mid_content = $_admin_menu['index']['admin/content/node'];
   }
-  $mid_node_add = $_menu['path index']['node/add'];
   admin_menu_copy_items($_admin_menu, $mid_node_add, $mid_content, t('Add !title'));
 
   // Add 'Edit <content_type>' menu items to Content management > Content types.
@@ -348,7 +347,7 @@ function admin_menu_copy_items(&$_admin_menu, $source_pid, $target_pid, $title =
       }
       // Only add child to target if it does not already exist.
       if (!in_array($mid, $_admin_menu[$target_pid]['children'])) {
-        admin_menu_add_item($_admin_menu, $target_pid, $item);
+        admin_menu_add_item($_admin_menu, $target_pid, $item, $mid);
       }
 
       // Recurse into children.

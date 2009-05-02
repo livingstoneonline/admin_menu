@@ -485,26 +485,40 @@ function admin_menu_item_url(&$_admin_menu, $mid) {
  * @param $item
  *   An menu item array for the menu system. May contain the key 'weight' to
  *   adjust the item's weight.
+ * @param $mid
+ *   (Optional) The menu item id to use.  Should be specified for already
+ *   existing menu items that are copied/relocated elsewhere.
  *
  * @return
  *   The id of the new menu item.
  */
-function admin_menu_add_item(&$_admin_menu, $pid, $item) {
+function admin_menu_add_item(&$_admin_menu, $pid, $item, $mid = NULL) {
+  static $custom_mid;
+
   if (empty($item['path'])) {
     return FALSE;
   }
   $item['pid'] = $pid;
   $item['children'] = array();
-  $id = max(array_keys($_admin_menu)) + 1;
-  $_admin_menu[$id] = $item;
-  $_admin_menu[$pid]['children'][] = $id;
-  $_admin_menu['index'][$item['path']] = $id;
-  admin_menu_item_url($_admin_menu, $id);
+  if (!isset($custom_mid)) {
+    $custom_mid = max(array_keys($_admin_menu)) + 10000;
+  }
+  if (!isset($mid)) {
+    $mid = $custom_mid++;
+  }
+  else {
+    // Ensure we have an integer.
+    $mid = (int) $mid;
+  }
+  $_admin_menu[$mid] = $item;
+  $_admin_menu[$pid]['children'][] = $mid;
+  $_admin_menu['index'][$item['path']] = $mid;
+  admin_menu_item_url($_admin_menu, $mid);
 
   // Sort items.
   usort($_admin_menu[$pid]['children'], '_admin_menu_sort');
 
-  return $id;
+  return $mid;
 }
 
 /**
