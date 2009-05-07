@@ -66,7 +66,7 @@ Drupal.behaviors.adminMenuCollapseModules = function (context) {
  * Drupal behavior.
  */
 Drupal.behaviors.adminMenuMarginTop = function (context) {
-  if (Drupal.settings.admin_menu.margin_top) {
+  if (!Drupal.settings.admin_menu.suppress && Drupal.settings.admin_menu.margin_top) {
     $('body:not(.admin-menu)', context).addClass('admin-menu');
   }
 };
