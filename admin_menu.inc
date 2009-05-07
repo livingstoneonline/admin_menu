@@ -207,7 +207,7 @@ function admin_menu_adjust_items(&$_admin_menu) {
 
   // Add logout item.
   if ($user->uid > 0) {
-    $mid_user = $_menu['path index']['user'];
+    $mid_user = $_menu['path index']["user/$user->uid"];
     admin_menu_add_item($_admin_menu, $mid_admin, array(
       'title' => t('@name', array('@name' => $user->name)),
       'path' => $_menu['items'][$mid_user]['path'],

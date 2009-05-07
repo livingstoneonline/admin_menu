@@ -6,6 +6,7 @@ Admin Menu x.x-x.x, xxxx-xx-xx
 
 Admin Menu 5.x-3.x, xxxx-xx-xx
 ------------------------------
+by sun: Fixed Devel switch user links appended to wrong parent item.
 #451270 by sun: Added visual indication when working as uid 1.
 #221797 by sun: Fixed some content-types missing below admin/content/node.
 #167020 by sun: Fixed some accessible menu items are no longer displayed.

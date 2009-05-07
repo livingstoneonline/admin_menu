@@ -556,7 +556,7 @@ function admin_menu_admin_menu(&$admin_menu, $may_cache) {
  *   Administration Menu's icon.
  * - Adds links to switch to a different user to the logout button.
  */
-if (module_exists('devel') && !function_exists('devel_admin_menu')) {
+if (!function_exists('devel_admin_menu')) {
   function devel_admin_menu(&$admin_menu, $may_cache) {
     $access_devel = user_access('access devel information');
     $access_switch = user_access('switch users');
@@ -578,7 +578,9 @@ if (module_exists('devel') && !function_exists('devel_admin_menu')) {
       }
       // Add switch_user items.
       if ($access_switch && $devel_user_links = module_invoke('devel', 'switch_user_list')) {
-        $mid_user = $admin_menu['index']['user'];
+        global $user;
+
+        $mid_user = $admin_menu['index']["user/$user->uid"];
         foreach ($devel_user_links as $link) {
           if (is_array($link)) {
             admin_menu_add_item($admin_menu, $mid_user, array(
