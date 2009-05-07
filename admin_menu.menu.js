@@ -5,7 +5,7 @@ if (Drupal.jsEnabled) {
     // Collapse menus on menu administration page.
     $('div.box:not(.admin-menu-processed)').each(function() {
       $(this).addClass('admin-menu-processed')
-        .find('.content')
+        .find('.item-list').parent()
           .wrap('<fieldset class="collapsible collapsed"></fieldset>');
       var menuLegend = document.createElement('legend');
       $(menuLegend).html($('h2', this).text());
