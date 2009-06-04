@@ -19,9 +19,12 @@
  *
  * @see admin_menu_footer()
  */
-function admin_menu_build(&$_admin_menu, $mid_admin) {
+function admin_menu_build(&$_admin_menu) {
   global $_menu;
   $_admin_menu = array();
+
+  // Get item id of /q=admin, which we suppose to be the root for admin menu.
+  $mid_admin = $_menu['path index']['admin'];
 
   // Fix access permissions for root (category) menu items in Drupal core.
   foreach ($_menu['items'][$mid_admin]['children'] as $pid) {

@@ -195,9 +195,7 @@ function admin_menu_footer($main = 0) {
   if (!isset($content)) {
     global $_menu;
 
-    // Get item id of /q=admin, which we suppose to be the root for admin menu.
-    $mid_admin = $_menu['path index']['admin'];
-    $_admin_menu = &admin_menu_get_menu($mid_admin);
+    $_admin_menu = &admin_menu_get_menu();
 
     // Allow other modules to integrate with admin_menu (uncached).
     foreach (module_implements('admin_menu') as $module) {
@@ -206,7 +204,7 @@ function admin_menu_footer($main = 0) {
     }
 
     $content  = '<div id="admin-menu">';
-    $content .= theme_admin_menu_tree($mid_admin);
+    $content .= theme_admin_menu_tree();
     $content .= '</div>';
 
     // Cache the menu for this user.
@@ -220,6 +218,20 @@ function admin_menu_footer($main = 0) {
   }
 
   return $content;
+}
+
+/**
+ * Implementation of hook_js().
+ */
+function admin_menu_js() {
+  return array(
+    'cache' => array(
+      'callback' => 'admin_menu_js_cache',
+      'includes' => array('common', 'theme', 'unicode'),
+      // 'locale' additionally required, but only if enabled.
+      'dependencies' => array('locale', 'devel', 'filter', 'user'),
+    ),
+  );
 }
 
 /**
@@ -323,14 +335,11 @@ function admin_menu_get_user_count() {
 /**
  * Return administration menu from cache or rebuild it.
  *
- * @param $mid_admin
- *   The menu item id to use for the administration menu.
- *
  * @return
  *   An array containing a complete menu structure of all cached administration
  *   menu items.
  */
-function &admin_menu_get_menu($mid_admin = 5) {
+function &admin_menu_get_menu() {
   static $_admin_menu;
 
   if (isset($_admin_menu)) {
@@ -347,7 +356,12 @@ function &admin_menu_get_menu($mid_admin = 5) {
   }
   else {
     require_once drupal_get_path('module', 'admin_menu') . '/admin_menu.inc';
-    admin_menu_build($_admin_menu, $mid_admin);
+    // Ensure all modules are loaded when we need to rebuild.
+    drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);
+    module_list(TRUE, FALSE, FALSE);
+    menu_get_menu();
+
+    admin_menu_build($_admin_menu);
     cache_set($cid, 'cache_menu', serialize($_admin_menu), time() + (60 * 60 * 24));
   }
 
@@ -363,7 +377,7 @@ function &admin_menu_get_menu($mid_admin = 5) {
  * @return string
  *   The complete, rendered administration menu.
  */
-function theme_admin_menu_tree($pid = 1) {
+function theme_admin_menu_tree($pid = 5) {
   $_admin_menu = admin_menu_get_menu();
   $output = '';
 
