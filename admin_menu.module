@@ -129,7 +129,7 @@ function admin_menu_menu($may_cache) {
     drupal_add_js($path . '/admin_menu.menu.js');
     drupal_add_js('misc/collapse.js');
   }
-  elseif ($_GET['q'] == 'admin/build/modules') {
+  if ($_GET['q'] == 'admin/build/modules' || $_GET['q'] == 'admin/build/modules/list') {
     $settings['tweak_modules'] = variable_get('admin_menu_tweak_modules', 0);
   }
 
