@@ -414,9 +414,14 @@ function admin_menu_theme_settings() {
  * Wipe the menu so it can be rebuilt from scratch.
  */
 function admin_menu_wipe() {
+  // Flush cached menu tree.
   db_query("DELETE FROM {menu_links} WHERE menu_name = 'admin_menu'");
   menu_cache_clear('admin_menu');
   variable_set('admin_menu_rebuild_links', TRUE);
+  // Flush cached output of admin_menu.
+  cache_clear_all('admin_menu:', 'cache_menu', TRUE);
+  // Flush client-side cache hashes.
+  cache_clear_all('*', 'cache_admin_menu', TRUE);
 }
 
 /**
