@@ -135,8 +135,8 @@ function admin_menu_menu($may_cache) {
 
   drupal_add_js(array('admin_menu' => $settings), 'setting');
 
-  if ($_GET['q'] == 'admin/settings/admin_menu' || $_GET['q'] == 'admin/settings/devel') {
-    require_once drupal_get_path('module', 'admin_menu') . '/admin_menu.inc';
+  if ($_GET['q'] == 'admin/settings/admin_menu' || $_GET['q'] == 'admin/settings/clean-urls' || $_GET['q'] == 'admin/settings/devel') {
+    require_once $path . '/admin_menu.inc';
   }
   return $items;
 }
@@ -150,7 +150,7 @@ function admin_menu_menu($may_cache) {
  * pages where the menu would be distracting or break the layout.
  *
  * @param $set
- *   Defaults to TRUE. If called before hook_footer, the menu will not be
+ *   Defaults to TRUE. If called before hook_footer(), the menu will not be
  *   displayed. If FALSE is passed, the suppression state is returned.
  */
 function admin_menu_suppress($set = TRUE) {
@@ -627,10 +627,14 @@ if (!function_exists('devel_admin_menu')) {
  * Clear the cached admin menu tree.
  */
 function admin_menu_clear_cache() {
+  // Flush cached menu tree.
   // cache_clear_all() does not support a leading wildcard.
-  db_query("DELETE FROM {cache_menu} WHERE cid LIKE '%%admin_menu%%'");
-  db_query("DELETE FROM {cache_admin_menu}");
+  db_query("DELETE FROM {cache_menu} WHERE cid LIKE '%%:admin_menu'");
   variable_set('admin_menu_rebuild_links', TRUE);
+  // Flush cached output of admin_menu.
+  cache_clear_all('admin_menu:', 'cache_menu', TRUE);
+  // Flush client-side cache hashes.
+  cache_clear_all('*', 'cache_admin_menu', TRUE);
 }
 
 /**

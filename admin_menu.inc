@@ -471,13 +471,39 @@ function admin_menu_theme_settings() {
 
 /**
  * Implementation of hook_form_alter().
+ */
+function admin_menu_form_alter($form_id, &$form) {
+  if ($form_id == 'devel_admin_settings') {
+    admin_menu_form_devel_admin_settings_alter($form);
+  }
+  elseif ($form_id == 'system_clean_url_settings') {
+    admin_menu_form_system_clean_url_settings_alter($form);
+  }
+}
+
+/**
+ * Implementation of hook_form_FORM_ID_alter().
+ */
+function admin_menu_form_system_clean_url_settings_alter(&$form) {
+  $form['#submit']['admin_menu_system_clean_url_settings_form_submit'] = array();
+}
+
+/**
+ * Form submit handler to flush client-side cache hashes when clean URLs are toggled.
+ */
+function admin_menu_system_clean_url_settings_form_submit($form_id, $form_values) {
+  // Flush cached output of admin_menu.
+  cache_clear_all('admin_menu:', 'cache_menu', TRUE);
+  // Flush client-side cache hashes.
+  cache_clear_all('*', 'cache_admin_menu', TRUE);
+}
+
+/**
+ * Implementation of hook_form_FORM_ID_alter().
  *
  * Extends Devel module with Administration menu developer settings.
  */
-function admin_menu_form_alter($form_id, &$form) {
-  if ($form_id != 'devel_admin_settings') {
-    return;
-  }
+function admin_menu_form_devel_admin_settings_alter(&$form) {
   // Shift system_settings_form buttons.
   $weight = isset($form['buttons']['#weight']) ? $form['buttons']['#weight'] : 0;
   $form['buttons']['#weight'] = $weight + 1;
