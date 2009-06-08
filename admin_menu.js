@@ -2,7 +2,9 @@
 
 Drupal.behaviors = Drupal.behaviors || {}; // D5 only.
 
-Drupal.admin = Drupal.admin || { behaviors: {}, hashes: {} };
+Drupal.admin = Drupal.admin || {};
+Drupal.admin.behaviors = Drupal.admin.behaviors || {};
+Drupal.admin.hashes = Drupal.admin.hashes || {};
 
 /**
  * Core behavior for Administration menu.
