@@ -546,7 +546,7 @@ function admin_menu_flush_cache($name = NULL) {
       // Flush all caches; no need to re-implement this.
       module_load_include('inc', 'system', 'system.admin');
       $form_state = array();
-      system_clear_cache_submit($form_state, NULL);
+      system_clear_cache_submit(NULL, $form_state);
       break;
   }
   drupal_goto();
