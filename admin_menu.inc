@@ -275,6 +275,9 @@ function admin_menu_flush_cache($name = NULL) {
     case 'admin_menu':
       // Flush cached menu tree.
       db_query("DELETE FROM {menu_links} WHERE menu_name = 'admin_menu' AND customized = 0");
+      // Fall-through.
+
+    case 'menu':
       menu_rebuild();
       break;
 
@@ -286,10 +289,6 @@ function admin_menu_flush_cache($name = NULL) {
       foreach ($cache_tables as $table) {
         cache_clear_all('*', $table, TRUE);
       }
-      break;
-
-    case 'menu':
-      menu_rebuild();
       break;
 
     case 'requisites':
