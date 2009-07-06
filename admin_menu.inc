@@ -118,7 +118,7 @@ function admin_menu_adjust_items() {
     '#title' => 'Log out',
     '#weight' => -100,
     '#attributes' => array('class' => array('admin-menu-action')),
-    '#href' => 'user/logout',
+    '#href' => 'logout',
   );
 
   // Add Devel module links.
