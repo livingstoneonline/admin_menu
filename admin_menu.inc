@@ -182,6 +182,28 @@ function admin_menu_theme_settings() {
     '#default_value' => variable_get('admin_menu_tweak_tabs', 0),
     '#description' => t('If enabled, the tabs on the current page are moved into the administration menu. This feature is only available in themes that use the CSS classes <code>tabs primary</code> and <code>tabs secondary</code> for tabs.'),
   );
+
+  // Fetch all available modules manually, since module_list() only returns
+  // currently enabled modules, which makes this setting pointless if developer
+  // modules are currently disabled.
+  $all_modules = array();
+  $result = db_query("SELECT name, filename FROM {system} WHERE type = 'module' ORDER BY name ASC");
+  while ($module = db_fetch_object($result)) {
+    if (file_exists($module->filename)) {
+      $all_modules[$module->name] = $module->name;
+    }
+  }
+  $devel_modules = variable_get('admin_menu_devel_modules', _admin_menu_developer_modules());
+  $devel_modules = array_intersect($all_modules, $devel_modules);
+  $form['tweaks']['admin_menu_devel_modules_skip'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Developer modules to keep enabled'),
+    '#default_value' => variable_get('admin_menu_devel_modules_skip', array()),
+    '#options' => $devel_modules,
+    '#access' => !empty($devel_modules),
+    '#description' => t('Enabled developer modules in this list will not be disabled when the link <em>Disable developer modules</em> in the menu below the icon is invoked.'),
+  );
+
   return system_settings_form($form);
 }
 
@@ -235,9 +257,10 @@ function admin_menu_toggle_modules() {
   }
   else {
     // Allow site admins to override this variable via settings.php.
-    $devel_modules = variable_get('admin_menu_devel_modules', array('cache_disable', 'coder', 'content_copy', 'debug', 'delete_all', 'demo', 'devel', 'devel_node_access', 'devel_themer', 'macro', 'form_controller', 'imagecache_ui', 'journal', 'trace', 'upgrade_status', 'user_display_ui', 'util', 'views_ui', 'views_theme_wizard'));
+    $devel_modules = variable_get('admin_menu_devel_modules', _admin_menu_developer_modules());
     // Store currently enabled modules in a variable.
     $devel_modules = array_intersect(module_list(FALSE, FALSE), $devel_modules);
+    $devel_modules = array_diff($devel_modules, variable_get('admin_menu_devel_modules_skip', array()));
     if (!empty($devel_modules)) {
       variable_set('admin_menu_devel_modules_enabled', $devel_modules);
       // Disable developer modules.
@@ -260,8 +283,37 @@ function admin_menu_toggle_modules() {
     drupal_clear_js_cache();
     // Synchronize to catch any actions that were added or removed.
     actions_synchronize();
+    // Finally, flush admin_menu's cache.
+    admin_menu_flush_caches();
   }
-  drupal_goto();
+  drupal_goto(referer_uri());
+}
+
+/**
+ * Helper function to return a default list of developer modules.
+ */
+function _admin_menu_developer_modules() {
+  return array(
+    'cache_disable',
+    'coder',
+    'content_copy',
+    'debug',
+    'delete_all',
+    'demo',
+    'devel',
+    'devel_node_access',
+    'devel_themer',
+    'macro',
+    'form_controller',
+    'imagecache_ui',
+    'journal',
+    'trace',
+    'upgrade_status',
+    'user_display_ui',
+    'util',
+    'views_ui',
+    'views_theme_wizard',
+  );
 }
 
 /**
