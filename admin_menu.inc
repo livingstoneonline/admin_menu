@@ -13,6 +13,8 @@
  *   An array of links to be rendered around the menu tree.
  */
 function admin_menu_adjust_items() {
+  $destination = drupal_get_destination();
+
   // Add icon containing special links.
   $links['icon'] = array(
     '#title' => theme('admin_menu_icon'),
@@ -69,7 +71,7 @@ function admin_menu_adjust_items() {
     '#access' => user_access('administer site configuration'),
     '#href' => 'admin_menu/flush-cache',
     '#options' => array(
-      'query' => drupal_get_destination(),
+      'query' => $destination,
     ),
   );
   $caches = array(
@@ -84,7 +86,7 @@ function admin_menu_adjust_items() {
       '#title' => $title,
       '#href' => 'admin_menu/flush-cache/' . $arg,
       '#options' => array(
-        'query' => drupal_get_destination(),
+        'query' => $destination,
       ),
     );
   }
@@ -96,7 +98,7 @@ function admin_menu_adjust_items() {
     '#access' => user_access('administer site configuration'),
     '#href' => 'admin_menu/toggle-modules',
     '#options' => array(
-      'query' => drupal_get_destination(),
+      'query' => $destination,
     ),
   );
 

@@ -147,7 +147,7 @@ Drupal.admin.behaviors.replacements = function (context, $adminMenu) {
  */
 Drupal.admin.behaviors.destination = function (context, $adminMenu) {
   if (Drupal.settings.admin_menu.destination) {
-    $('.admin-menu-destination', $adminMenu).each(function() {
+    $('a.admin-menu-destination', $adminMenu).each(function() {
       this.search += (!this.search.length ? '?' : '&') + Drupal.settings.admin_menu.destination;
     });
   }

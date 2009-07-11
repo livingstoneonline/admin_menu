@@ -488,7 +488,7 @@ function theme_admin_menu_links(&$elements) {
  *   A data structure representing the tree as returned from
  *   menu_tree_all_data().
  *
- * @return string
+ * @return
  *   The complete, rendered administration menu.
  */
 function admin_menu_tree_output($tree) {
