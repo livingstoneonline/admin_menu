@@ -167,66 +167,7 @@ function admin_menu_suppress($set = TRUE) {
  * Implementation of hook_footer().
  */
 function admin_menu_footer($main = 0) {
-  if (!user_access('access administration menu') || admin_menu_suppress(FALSE)) {
-    return;
-  }
-  global $user, $locale;
-
-  $cache_server_enabled = variable_get('admin_menu_cache_server', TRUE);
-
-  // Determine whether we need to rebuild.
-  $rebuild = variable_get('admin_menu_rebuild_links', FALSE);
-  $cid = 'admin_menu:' . $user->uid . ':' . $locale;
-
-  // Do nothing at all here if the client supports client-side caching, no
-  // rebuild is needed, the user has a hash, and is NOT requesting the cache
-  // update path. Consult the hash cache last, since it requires a DB request.
-  // @todo Implement a sanity-check to prevent permanent double requests; i.e.
-  //   what if the client-side cache fails for any reason and performs a second
-  //   request on every page?
-  if (!empty($_COOKIE['has_js']) && !$rebuild && strpos($_GET['q'], 'js/admin_menu/cache') !== 0) {
-    if (admin_menu_cache_get($cid)) {
-      return;
-    }
-  }
-
-  // Try to load and output administration menu from server-side cache.
-  if ($cache_server_enabled) {
-    $cache = cache_get($cid, 'cache_menu');
-    if (!$rebuild && $cache && isset($cache->data)) {
-      $content = $cache->data;
-    }
-  }
-
-  // Rebuild the output.
-  if (!isset($content)) {
-    global $_menu;
-
-    $_admin_menu = &admin_menu_get_menu();
-
-    // Allow other modules to integrate with admin_menu (uncached).
-    foreach (module_implements('admin_menu') as $module) {
-      $function = $module . '_admin_menu';
-      $function($_admin_menu, FALSE);
-    }
-
-    $content  = '<div id="admin-menu">';
-    $content .= theme_admin_menu_tree();
-    $content .= '</div>';
-
-    // Cache the menu for this user.
-    if ($cache_server_enabled) {
-      cache_set($cid, 'cache_menu', $content, time() + (60 * 60 * 24));
-      variable_del('admin_menu_rebuild_links');
-    }
-  }
-
-  // Store the new hash for this user.
-  if (!empty($_COOKIE['has_js'])) {
-    admin_menu_cache_set($cid, md5($content));
-  }
-
-  return $content;
+  return admin_menu_output();
 }
 
 /**
@@ -291,7 +232,7 @@ function admin_menu_cache_set($cid, $data) {
  */
 function admin_menu_js_cache($hash = NULL) {
   // Get the rendered menu.
-  $content = admin_menu_footer();
+  $content = admin_menu_output();
 
   // @todo According to http://www.mnot.net/blog/2006/05/11/browser_caching,
   //   IE will only cache the content when it is compressed.
@@ -353,6 +294,75 @@ function admin_menu_get_user_count() {
   $count_auth = db_result(db_query("SELECT COUNT(DISTINCT uid) FROM {sessions} WHERE uid > 0 AND timestamp >= %d", $interval));
 
   return t('@count-anon / @count-auth', array('@count-anon' => $count_anon, '@count-auth' => $count_auth));
+}
+
+/**
+ * Build the administration menu output.
+ */
+function admin_menu_output() {
+  if (!user_access('access administration menu') || admin_menu_suppress(FALSE)) {
+    return;
+  }
+  global $user, $locale;
+
+  $cache_server_enabled = variable_get('admin_menu_cache_server', TRUE);
+
+  // Determine whether we need to rebuild.
+  $rebuild = variable_get('admin_menu_rebuild_links', FALSE);
+  $cid = 'admin_menu:' . $user->uid . ':' . $locale;
+
+  // Do nothing at all here if the client supports client-side caching, no
+  // rebuild is needed, the user has a hash, and is NOT requesting the cache
+  // update path. Consult the hash cache last, since it requires a DB request.
+  // @todo Implement a sanity-check to prevent permanent double requests; i.e.
+  //   what if the client-side cache fails for any reason and performs a second
+  //   request on every page?
+  if (!empty($_COOKIE['has_js']) && !$rebuild && strpos($_GET['q'], 'js/admin_menu/cache') !== 0) {
+    if (admin_menu_cache_get($cid)) {
+      return;
+    }
+  }
+
+  // Try to load and output administration menu from server-side cache.
+  if ($cache_server_enabled) {
+    $cache = cache_get($cid, 'cache_menu');
+    if (!$rebuild && $cache && isset($cache->data)) {
+      $content = $cache->data;
+    }
+  }
+
+  // Rebuild the output.
+  if (!isset($content)) {
+    // Add site name as CSS class for development/staging theming purposes. We
+    // leverage the cookie domain instead of HTTP_HOST to account for many (but
+    // not all) multi-domain setups (e.g. language-based sub-domains).
+    $class_site = 'admin-menu-site' . drupal_strtolower(preg_replace('/[^a-zA-Z0-9-]/', '-', $GLOBALS['cookie_domain']));
+
+    $_admin_menu = &admin_menu_get_menu();
+
+    // Allow other modules to integrate with admin_menu (uncached).
+    foreach (module_implements('admin_menu') as $module) {
+      $function = $module . '_admin_menu';
+      $function($_admin_menu, FALSE);
+    }
+
+    $content  = '<div id="admin-menu" class="' . $class_site . '">';
+    $content .= theme_admin_menu_tree();
+    $content .= '</div>';
+
+    // Cache the menu for this user.
+    if ($cache_server_enabled) {
+      cache_set($cid, 'cache_menu', $content, time() + (60 * 60 * 24));
+      variable_del('admin_menu_rebuild_links');
+    }
+  }
+
+  // Store the new hash for this user.
+  if (!empty($_COOKIE['has_js'])) {
+    admin_menu_cache_set($cid, md5($content));
+  }
+
+  return $content;
 }
 
 /**

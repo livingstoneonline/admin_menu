@@ -17,7 +17,7 @@
  * @param $mid_admin
  *   The menu item id to use for the administration menu.
  *
- * @see admin_menu_footer()
+ * @see admin_menu_output()
  */
 function admin_menu_build(&$_admin_menu) {
   global $_menu;
