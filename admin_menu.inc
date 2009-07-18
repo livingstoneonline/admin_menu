@@ -215,7 +215,7 @@ function admin_menu_adjust_items(&$_admin_menu) {
       'title' => t('@name', array('@name' => $user->name)),
       'path' => $_menu['items'][$mid_user]['path'],
       'weight' => -99,
-      'class' => 'admin-menu-action',
+      'class' => 'admin-menu-action admin-menu-account',
     ), $mid_user);
     $mid_logout = $_menu['path index']['logout'];
     admin_menu_add_item($_admin_menu, $mid_admin, array(
