@@ -127,8 +127,8 @@ Drupal.admin.behaviors.positionFixed = function (context, $adminMenu) {
  */
 Drupal.admin.behaviors.pageTabs = function (context, $adminMenu) {
   if (Drupal.settings.admin_menu.tweak_tabs) {
-    $('ul.tabs.primary li', context).addClass('admin-menu-tab').appendTo('#admin-menu > ul');
-    $('ul.tabs.secondary', context).appendTo('#admin-menu > ul > li.admin-menu-tab.active');
+    $('ul.tabs.primary li', context).addClass('admin-menu-tab').appendTo('#admin-menu-wrapper > ul');
+    $('ul.tabs.secondary', context).appendTo('#admin-menu-wrapper > ul > li.admin-menu-tab.active');
     $('ul.tabs.primary', context).remove();
   }
 };
