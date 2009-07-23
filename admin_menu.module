@@ -178,8 +178,7 @@ function admin_menu_js() {
     'cache' => array(
       'callback' => 'admin_menu_js_cache',
       'includes' => array('common', 'theme', 'unicode'),
-      // 'locale' additionally required, but only if enabled.
-      'dependencies' => array('locale', 'devel', 'filter', 'user'),
+      'dependencies' => array('devel', 'filter', 'user'),
     ),
   );
 }
