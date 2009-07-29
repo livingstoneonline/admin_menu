@@ -145,7 +145,7 @@ function admin_menu_links_icon() {
     // Add variable editor.
     $links['icon']['devel-variables'] = array(
       '#title' => t('Variable editor'),
-      '#weight' => 30,
+      '#weight' => 20,
       '#access' => user_access('access devel information'),
       '#href' => 'devel/variable',
     );
