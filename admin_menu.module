@@ -151,6 +151,73 @@ function admin_menu_menu_alter(&$items) {
 }
 
 /**
+ * Implementation of hook_menu_link_alter().
+ */
+function admin_menu_menu_link_alter(&$item, $menu) {
+  // @todo Temporary fix until #550254 has been released.
+  // @see menu_link_save()
+  // Only process links during menu router rebuild, belonging to our menu.
+  if (!isset($menu) || !($item['menu_name'] == 'admin_menu')) {
+    return;
+  }
+
+  // If no explicit plid is defined as parent, then the the re-parenting process
+  // is always invoked, since there is no guarantee that a plid of 0 is not
+  // caused by a re-parenting process that went wrong previously. For example,
+  // local tasks may be re-parented to the top-level (0) when tab_root points to
+  // an item of type MENU_CALLBACK.
+  if (!empty($item['plid'])) {
+    $parent = db_fetch_array(db_query("SELECT * FROM {menu_links} WHERE mlid = %d", $item['plid']));
+  }
+  else {
+    // Find the parent - it must be unique.
+    $parent_path = $item['link_path'];
+    $where = "WHERE link_path = '%s'";
+    // Only links derived from router items should have module == 'system', and
+    // we want to find the parent even if it's in a different menu.
+    if ($item['module'] == 'system') {
+      $where .= " AND module = '%s'";
+      $arg2 = 'system';
+    }
+    else {
+      // If not derived from a router item, we respect the specified menu name.
+      $where .= " AND menu_name = '%s'";
+      $arg2 = $item['menu_name'];
+    }
+    do {
+      $parent = FALSE;
+      $parent_path = substr($parent_path, 0, strrpos($parent_path, '/'));
+      $result = db_query("SELECT COUNT(*) FROM {menu_links} ". $where, $parent_path, $arg2);
+      // Only valid if we get a unique result.
+      if (db_result($result) == 1) {
+        $parent = db_fetch_array(db_query("SELECT * FROM {menu_links} ". $where, $parent_path, $arg2));
+      }
+    } while ($parent === FALSE && $parent_path);
+  }
+  if ($parent !== FALSE) {
+    // If a parent link was found, derive its menu.
+    $item['menu_name'] = $parent['menu_name'];
+
+    // Whenever we retrieve a parent link for a router item from the database,
+    // we need to update the parent link's properties according to the new
+    // router item. Otherwise, the re-parenting process gets stuck on the menu
+    // router data that was stored in {menu_links} in a previous menu rebuild.
+    if (isset($menu) && !empty($parent['router_path']) && isset($menu[$parent['router_path']])) {
+      $parent = array_merge($parent, _menu_link_build($menu[$parent['router_path']]));
+    }
+  }
+  $menu_name = $item['menu_name'];
+  // Menu callbacks need to be in the links table for breadcrumbs, but can't
+  // be parents if they are generated directly from a router item.
+  if (empty($parent['mlid']) || $parent['hidden'] < 0) {
+    $item['plid'] =  0;
+  }
+  else {
+    $item['plid'] = $parent['mlid'];
+  }
+}
+
+/**
  * Implementation of hook_init().
  *
  * We can't move this into admin_menu_footer(), because PHP-only based themes
