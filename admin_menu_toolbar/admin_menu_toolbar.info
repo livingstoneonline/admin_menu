@@ -1,0 +1,6 @@
+; $Id$
+name = Administration menu Toolbar style
+description = A better Toolbar.
+package = Administration
+core = 6.x
+dependencies[] = admin_menu

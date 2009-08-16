@@ -22,6 +22,7 @@ by sun: Fixed destination query string of current page not applied to links.
 by sun: Changed Drupal.admin.attachBehaviors() to accept local JS settings.
 #276751 by sun: Revamped rendering of menu additions/widgets.
 #500866 by sun: Updated for removed t() from getInfo() in tests.
+#402058 by sun: Added Administration menu toolbar module.
 by markus_petrux, sun: Added API documentation.
 #461264 by sun: Added site/domain as CSS class.
 #451270 by smk-ka, sun: Changed visual indication for uid1.
