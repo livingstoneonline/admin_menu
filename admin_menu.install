@@ -52,8 +52,6 @@ function _admin_menu_install_menu() {
  */
 function admin_menu_update_6000() {
   $ret = array();
-  // Delete menu links.
-  db_query("DELETE FROM {menu_links} WHERE module = 'admin_menu'");
   // Drop the {admin_menu} table in admin_menu_update_6000() on sites that used
   // one of the later patches in #132524.
   if (db_table_exists('admin_menu')) {
@@ -67,9 +65,10 @@ function admin_menu_update_6000() {
  */
 function admin_menu_update_6001() {
   $ret = array();
-  module_load_include('inc', 'admin_menu');
-  admin_menu_wipe();
+  // Delete menu links.
+  $ret[] = update_sql("DELETE FROM {menu_links} WHERE module = 'admin_menu'");
   $ret[] = array('success' => TRUE, 'query' => 'Administration menu links deleted for clean rebuild.');
+  menu_cache_clear('admin_menu');
   return $ret;
 }
 
@@ -78,11 +77,10 @@ function admin_menu_update_6001() {
  */
 function admin_menu_update_6300() {
   $ret = array();
-  if (db_table_exists('cache_admin_menu')) {
-    return $ret;
+  if (!db_table_exists('cache_admin_menu')) {
+    $schema = drupal_get_schema_unprocessed('system', 'cache');
+    db_create_table($ret, 'cache_admin_menu', $schema);
   }
-  $schema = drupal_get_schema_unprocessed('system', 'cache');
-  db_create_table($ret, 'cache_admin_menu', $schema);
   return $ret;
 }
 
@@ -96,7 +94,7 @@ function admin_menu_update_6301() {
   // Create menu.
   $ret[] = _admin_menu_install_menu();
   // Clean-up menu links from earlier versions.
-  db_query("DELETE FROM {menu_links} WHERE module = 'admin_menu' OR menu_name = 'admin_menu'");
+  $ret[] = update_sql("DELETE FROM {menu_links} WHERE module = 'admin_menu' OR menu_name = 'admin_menu'");
   return $ret;
 }
 
