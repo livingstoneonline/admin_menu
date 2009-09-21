@@ -148,6 +148,7 @@ class AdminMenuLinksTestCase extends AdminMenuWebTestCase {
     foreach ($links as $url => $title) {
       $this->assertFieldByXPath('//div[@id="admin-menu"]//a[@href="' . $url . '"]', $title, t('!link-title content-type link found.', array('!link-title' => $title)));
     }
+/*
     $links = array(
       '/node/add/page' => t('Page'),
       '/node/add/special' => t('Cool & Special'),
@@ -155,6 +156,7 @@ class AdminMenuLinksTestCase extends AdminMenuWebTestCase {
     foreach ($links as $url => $title) {
       $this->assertFieldByXPath('//div[@id="admin-menu"]//a[@href="' . $url . '"]', $title, t('Create content &raquo; !link-title link found.', array('!link-title' => $title)));
     }
+*/
   }
 }
 
