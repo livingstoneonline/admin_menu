@@ -18,7 +18,7 @@ body div#toolbar {
   padding: 5px 10px 0;
 }
 #admin-menu-shadow {
-  background: transparent url(/modules/toolbar/toolbar.png) 0 -85px repeat-x;
+  background: transparent url(toolbar.png) 0 -85px repeat-x;
   bottom: -15px;
   height: 15px;
   left: 0;
@@ -47,7 +47,7 @@ body.admin-menu {
 }
 #admin-menu ul li.admin-menu-toolbar-category > a.active-trail {
   text-shadow: #333 0 1px 0;
-  background: url(/modules/toolbar/toolbar.png) 0 0 repeat-x;
+  background: url(toolbar.png) 0 0 repeat-x;
 }
 #admin-menu ul li.admin-menu-toolbar-category > a:hover {
   background-color: #444;
@@ -64,7 +64,7 @@ body.admin-menu {
   float: right;
 }
 #admin-menu li.admin-menu-shortcuts span.toggle {
-  background: url(/modules/toolbar/toolbar.png) 0 -60px no-repeat;
+  background: url(toolbar.png) 0 -60px no-repeat;
   cursor: pointer;
   display: block;
   height: 25px;
@@ -103,5 +103,5 @@ body.admin-menu {
 }
 #admin-menu li.admin-menu-shortcuts ul li a.active:hover,
 #admin-menu li.admin-menu-shortcuts ul li a.active {
-  background: url(/modules/toolbar/toolbar.png) 0 -20px repeat-x;
+  background: url(toolbar.png) 0 -20px repeat-x;
 }
