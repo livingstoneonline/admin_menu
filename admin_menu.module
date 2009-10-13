@@ -563,7 +563,7 @@ function admin_menu_output() {
  * @param $depth
  *   Current recursion level; internal use only.
  */
-function theme_admin_menu_links(&$elements, $depth = 0) {
+function theme_admin_menu_links($elements, $depth = 0) {
   static $destination;
 
   if (!isset($destination)) {
@@ -728,4 +728,3 @@ function admin_menu_form_devel_admin_settings_alter(&$form, $form_state) {
   module_load_include('inc', 'admin_menu');
   _admin_menu_form_devel_admin_settings_alter($form, $form_state);
 }
-
