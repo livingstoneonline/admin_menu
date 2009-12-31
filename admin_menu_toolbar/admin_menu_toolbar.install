@@ -1,0 +1,23 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Installation and update functionality for Administration menu toolbar module.
+ */
+
+/**
+ * Set module weight to a value higher than admin_menu.
+ *
+ * Required to load JS/CSS in hook_init() after admin_menu.
+ * At this point, admin_menu should have a weight of 100. To account for
+ * customized weights, we increase the weight relatively.
+ */
+function admin_menu_toolbar_update_6300() {
+  $ret = array();
+  $weight = db_result(db_query("SELECT weight FROM {system} WHERE type = 'module' AND name = 'admin_menu'"));
+  $weight++;
+  $ret[] = update_sql("UPDATE {system} SET weight = $weight WHERE type = 'module' AND name = 'admin_menu_toolbar'");
+  return $ret;
+}
+
