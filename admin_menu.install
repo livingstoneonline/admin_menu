@@ -66,7 +66,7 @@ function admin_menu_update_6000() {
   // Drop the {admin_menu} table in admin_menu_update_6000() on sites that used
   // one of the later patches in #132524.
   if (db_table_exists('admin_menu')) {
-    $ret[] = update_sql("DROP TABLE {admin_menu}");
+    db_drop_table($ret, 'admin_menu');
   }
   return $ret;
 }

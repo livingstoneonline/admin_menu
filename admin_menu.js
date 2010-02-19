@@ -1,4 +1,5 @@
 /* $Id$ */
+(function($) {
 
 Drupal.admin = Drupal.admin || {};
 Drupal.admin.behaviors = Drupal.admin.behaviors || {};
@@ -190,3 +191,4 @@ Drupal.admin.behaviors.hover = function (context, settings, $adminMenu) {
  * @} End of "defgroup admin_behaviors".
  */
 
+})(jQuery);

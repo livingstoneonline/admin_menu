@@ -405,6 +405,7 @@ function admin_menu_flush_cache($name = NULL) {
     case 'cache':
       // Don't clear cache_form - in-progress form submissions may break.
       // Ordered so clearing the page cache will always be the last action.
+      // @see drupal_flush_all_caches()
       $core = array('cache', 'cache_block', 'cache_filter', 'cache_page');
       $cache_tables = array_merge(module_invoke_all('flush_caches'), $core);
       foreach ($cache_tables as $table) {
