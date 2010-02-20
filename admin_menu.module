@@ -312,6 +312,9 @@ function admin_menu_init() {
   if ($_GET['q'] == 'admin/build/modules' || strpos($_GET['q'], 'admin/build/modules/list') === 0) {
     $settings['tweak_modules'] = variable_get('admin_menu_tweak_modules', 0);
   }
+  if ($_GET['q'] == 'admin/user/permissions') {
+    $settings['tweak_permissions'] = variable_get('admin_menu_tweak_permissions', 0);
+  }
 
   drupal_add_js(array('admin_menu' => $settings), 'setting');
 }

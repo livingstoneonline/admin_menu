@@ -18,6 +18,7 @@ Drupal.behaviors.adminMenu = function (context) {
     margin_top: false,
     position_fixed: false,
     tweak_modules: false,
+    tweak_permissions: false,
     tweak_tabs: false,
     destination: '',
     basePath: Drupal.settings.basePath,
@@ -56,6 +57,30 @@ Drupal.behaviors.adminMenu = function (context) {
 Drupal.behaviors.adminMenuCollapseModules = function (context) {
   if (Drupal.settings.admin_menu.tweak_modules) {
     $('#system-modules fieldset:not(.collapsed), #system-modules-1 fieldset:not(.collapsed)', context).addClass('collapsed');
+  }
+};
+
+/**
+ * Collapse modules on Permissions page.
+ */
+Drupal.behaviors.adminMenuCollapsePermissions = function (context) {
+  if (Drupal.settings.admin_menu.tweak_permissions) {
+    // Freeze width of first column to prevent jumping.
+    $('#permissions th:first', context).css({ width: $('#permissions th:first', context).width() });
+    // Attach click handler.
+    $('#permissions tr:has(td.module)', context).each(function () {
+      var $module = $(this).addClass('admin-menu-tweak-permissions-processed');
+      $module.bind('click.admin-menu', function () {
+        // @todo Replace with .nextUntil() in jQuery 1.4.
+        $module.nextAll().each(function () {
+          var $row = $(this);
+          if ($row.is(':has(td.module)')) {
+            return false;
+          }
+          $row.toggleClass('element-hidden');
+        });
+      });
+    }).trigger('click.admin-menu');
   }
 };
 
