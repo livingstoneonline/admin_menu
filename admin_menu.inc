@@ -195,10 +195,10 @@ function admin_menu_links_user() {
     '#href' => 'logout',
   );
 
-  // Add Devel module links.
-  if (module_exists('devel')) {
-    // Add switch user links.
-    foreach (module_invoke('devel', 'switch_user_list') as $link) {
+  // Add Devel module switch user links.
+  $switch_links = module_invoke('devel', 'switch_user_list');
+  if (!empty($switch_links) && count($switch_links) > 1) {
+    foreach ($switch_links as $uid => $link) {
       $links['account'][$link['title']] = array(
         '#title' => $link['title'],
         '#description' => $link['attributes']['title'],
