@@ -247,7 +247,7 @@ function admin_menu_theme_settings() {
     '#type' => 'checkbox',
     '#title' => t('Collapse modules on permissions page'),
     '#default_value' => variable_get('admin_menu_tweak_permissions', 0),
-    '#description' => t('Collapses permissions by module on the <a href="@permissions-url">permissions</a> page.', array('@permissions-url' => url('admin/people/permissions'))),
+    '#description' => t('Collapses permissions by module on the <a href="@permissions-url">permissions</a> page.', array('@permissions-url' => url('admin/user/permissions'))),
   );
   $form['tweaks']['admin_menu_tweak_tabs'] = array(
     '#type' => 'checkbox',

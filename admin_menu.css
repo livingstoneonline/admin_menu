@@ -208,3 +208,16 @@ tr.admin-menu-tweak-permissions-processed {
 tr.admin-menu-tweak-permissions-processed td.module {
   border-top: 0;
 }
+
+/**
+ * Hide elements from all users. (D7 backport)
+ *
+ * Used for elements which should not be immediately displayed to any user. An
+ * example would be a collapsible fieldset that will be expanded with a click
+ * from a user. The effect of this class can be toggled with the jQuery show()
+ * and hide() functions.
+ */
+.element-hidden {
+  display: none;
+}
+
