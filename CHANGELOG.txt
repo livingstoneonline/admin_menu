@@ -6,6 +6,10 @@ Admin Menu x.x-x.x, xxxx-xx-xx
 
 Admin Menu 5.x-3.x, xxxx-xx-xx
 ------------------------------
+
+
+Admin Menu 5.x-3.0-ALPHA2, 2010-03-11
+-------------------------------------
 #599462 by sun, koyama: Added background-color to avoid unintentional override.
 #420812 by sun: Removed Locale from dependencies in hook_js().
 #461264 by sun: Added site/domain as CSS class.
