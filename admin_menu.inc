@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * The key function that builds the menu links whenever there is a menu rebuild.
