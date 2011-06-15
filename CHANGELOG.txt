@@ -5,6 +5,10 @@ Admin Menu x.x-x.x, xxxx-xx-xx
 
 Admin Menu 6.x-1.x, xxxx-xx-xx
 ------------------------------
+
+Admin Menu 6.x-1.7, 2011-06-15
+------------------------------
+#1189672 by pwolanin: fix for 'flush all caches' open to csrf.
 #1189532 by pwolanin: fix rebuild logic to avoid an extra menu rebuild.
 
 Admin Menu 6.x-1.6, 2010-09-03

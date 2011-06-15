@@ -467,6 +467,10 @@ function _admin_menu_devel_settings_form_alter(&$form, $form_state) {
  * on larger Drupal sites this is actually a 10% performance increase.
  */
 function admin_menu_toggle_modules() {
+  // URL token prtects this against CSRF attacks.
+  if(!isset($_GET['token']) || ($_GET['token'] !== drupal_get_token($_GET['q']))) {
+    return MENU_ACCESS_DENIED;
+  }
   $rebuild = FALSE;
   $saved_state = variable_get('admin_menu_devel_modules_enabled', NULL);
   if (isset($saved_state)) {
@@ -514,6 +518,10 @@ function admin_menu_toggle_modules() {
  *   (optional) Name of cache to flush.
  */
 function admin_menu_flush_cache($name = NULL) {
+  // URL token protects this against CSRF attacks.
+  if(!isset($_GET['token']) || ($_GET['token'] !== drupal_get_token($_GET['q']))) {
+    return MENU_ACCESS_DENIED;
+  }
   switch ($name) {
     case 'admin_menu':
       admin_menu_wipe();

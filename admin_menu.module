@@ -290,9 +290,11 @@ function admin_menu_translated_menu_link_alter(&$item, $map) {
   // Fix destination query strings
   if (isset($item['localized_options']['query'])) {
     if ($item['localized_options']['query'] == 'destination') {
-      $item['localized_options']['query'] = drupal_get_destination();
+      // URL token protects the link against CSRF attacks.
+      $item['localized_options']['query'] = drupal_get_destination() . '&token=' . drupal_get_token($item['link_path']);
     }
   }
+
   if ($extra = variable_get('admin_menu_display', 0)) {
     $item['title'] .= ' '. $extra[0] .': '. $item[$extra];
   }
