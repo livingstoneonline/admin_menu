@@ -8,21 +8,30 @@
  * the PCRE pattern, since admin menu's output spans over multiple lines.
  */
 
+class AdminMenuWebTestCase extends DrupalWebTestCase {
+  function setUp() {
+    parent::setUp('admin_menu', 'contact');
+    // Create and log in a full-blown administrative user.
+    $permissions = module_invoke_all('perm');
+    $this->admin_user = $this->drupalCreateUser($permissions);
+    $this->drupalLogin($this->admin_user);
+    // Forcing a menu rebuild via the UI seems to be required for
+    // the tests to work.
+    $this->drupalPost('admin/settings/performance', array(), t('Clear cached data'));
+    $this->drupalLogout();
+  }
+}
 
 /**
  * Test menu links depending on user permissions.
  */
-class AdminMenuPermissionsTestCase extends DrupalWebTestCase {
+class AdminMenuPermissionsTestCase extends AdminMenuWebTestCase {
   public static function getInfo() {
     return array(
       'name' => t('Menu link permissions'),
       'description' => t('Verify that menu is displayed according to user permissions.'),
       'group' => t('Administration menu'),
     );
-  }
-
-  function setUp() {
-    parent::setUp('admin_menu');
   }
 
   /**
@@ -56,17 +65,13 @@ class AdminMenuPermissionsTestCase extends DrupalWebTestCase {
 /**
  * Test menu links depending on installed modules.
  */
-class AdminMenuModulesTestCase extends DrupalWebTestCase {
+class AdminMenuModulesTestCase extends AdminMenuWebTestCase {
   public static function getInfo() {
     return array(
       'name' => t('Module menu links'),
       'description' => t('Verify that menu contains links according to enabled modules.'),
       'group' => t('Administration menu'),
     );
-  }
-
-  function setUp() {
-    parent::setUp('admin_menu', 'contact');
   }
 
   /**
@@ -95,7 +100,7 @@ class AdminMenuModulesTestCase extends DrupalWebTestCase {
 /**
  * Test contained links in administration menu.
  */
-class AdminMenuLinksTestCase extends DrupalWebTestCase {
+class AdminMenuLinksTestCase extends AdminMenuWebTestCase {
   public static function getInfo() {
     return array(
       'name' => t('Menu links'),
@@ -104,19 +109,11 @@ class AdminMenuLinksTestCase extends DrupalWebTestCase {
     );
   }
 
-  function setUp() {
-    parent::setUp('admin_menu');
-
-    // Create and log in a full-blown administrative user.
-    $permissions = module_invoke_all('perm');
-    $admin_user = $this->drupalCreateUser($permissions);
-    $this->admin_user = $this->drupalLogin($admin_user);
-  }
-
   /**
    * Test link contents.
    */
   function testLinkContents() {
+    $this->drupalLogin($this->admin_user);
     // Create a content-type with special characters.
     $info = array(
       'type' => 'special',
@@ -126,7 +123,7 @@ class AdminMenuLinksTestCase extends DrupalWebTestCase {
     );
     $info = (object)_node_type_set_defaults($info);
     node_type_save($info);
-    drupal_flush_all_caches();
+    $this->drupalPost('admin/settings/performance', array(), t('Clear cached data'));
 
     // Fetch a page.
     $this->drupalGet('node');

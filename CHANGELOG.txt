@@ -5,7 +5,7 @@ Admin Menu x.x-x.x, xxxx-xx-xx
 
 Admin Menu 6.x-1.x, xxxx-xx-xx
 ------------------------------
-
+#1189532 by pwolanin: fix rebuild logic to avoid an extra menu rebuild.
 
 Admin Menu 6.x-1.6, 2010-09-03
 ------------------------------

@@ -125,27 +125,27 @@ function admin_menu_suppress($set = TRUE) {
  * Admin menu was previously output via hook_block(), but suffered from
  * theme-specific stylesheets that may be applied to layout blocks. We now
  * output Admin menu in the footer to circumvent this.
- *
- * @todo Since admin_menu is rebuilt in the same request, we should be able
- *   to use a helper function instead of a variable to remind us to rebuild
- *   (variable_set() is slow).
  */
 function admin_menu_footer($main = 0) {
   if (!user_access('access administration menu') || admin_menu_suppress(FALSE)) {
     return;
   }
 
-  // Check for the flag indicating that we need to rebuild.
-  if (variable_get('admin_menu_rebuild_links', FALSE)) {
-    module_load_include('inc', 'admin_menu');
-    _admin_menu_rebuild_links();
-    variable_del('admin_menu_rebuild_links');
-  }
-
   $content  = '<div id="admin-menu">';
   $content .= admin_menu_tree_output(menu_tree_all_data('admin_menu'));
   $content .= '</div>';
   return $content;
+}
+
+/**
+ * Implementation of hook_exit().
+ */
+function admin_menu_exit() {
+  // Check for the flag indicating that we need to rebuild.
+  if (admin_menu_rebuild_links()) {
+    module_load_include('inc', 'admin_menu');
+    _admin_menu_rebuild_links();
+  }
 }
 
 /**
@@ -228,14 +228,23 @@ function admin_menu_form_devel_admin_settings_alter(&$form, $form_state) {
  * Implementation of hook_enable().
  */
 function admin_menu_enable() {
-  variable_set('admin_menu_rebuild_links', TRUE);
+  admin_menu_rebuild_links(TRUE);
 }
 
 /**
  * Implementation of hook_menu_alter().
  */
 function admin_menu_menu_alter() {
-  variable_set('admin_menu_rebuild_links', TRUE);
+  admin_menu_rebuild_links(TRUE);
+}
+
+function admin_menu_rebuild_links($new_value = NULL) {
+  static $rebuild = FALSE;
+
+  if (isset($new_value)) {
+    $rebuild = $new_value;
+  }
+  return $rebuild;
 }
 
 /**

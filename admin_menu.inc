@@ -4,8 +4,22 @@
  * The key function that builds the menu links whenever there is a menu rebuild.
  */
 function _admin_menu_rebuild_links() {
-  // Get the newly rebuilt menu.
-  $menu = menu_router_build();
+  $menu = NULL;
+  // Since it's possible this core function might change, check
+  // that it exists. We do this instead of calling menu_router_build()
+  // since that may trigger another menu rebuild that is not protected
+  // by the lock API.
+  if (function_exists('_menu_router_cache')) {
+    // Get the newly rebuilt menu.
+    $menu = _menu_router_cache();
+  }
+  else {
+    $menu = menu_router_build();
+  }
+  if (!$menu) {
+    // Something went wrong. Don't risk triggering another menu rebuild.
+    return;
+  }
   // Add normal and suggested items as links.
   $menu_links = array();
   foreach ($menu as $path => $item) {
@@ -410,7 +424,7 @@ function admin_menu_theme_settings() {
 function admin_menu_wipe() {
   db_query("DELETE FROM {menu_links} WHERE menu_name = 'admin_menu'");
   menu_cache_clear('admin_menu');
-  variable_set('admin_menu_rebuild_links', TRUE);
+  menu_rebuild();
 }
 
 /**
@@ -516,7 +530,7 @@ function admin_menu_flush_cache($name = NULL) {
       break;
 
     case 'menu':
-      module_invoke('menu', 'rebuild');
+      menu_rebuild();
       break;
 
     case 'requisites':
