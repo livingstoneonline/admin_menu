@@ -58,6 +58,8 @@ function node_admin_menu_map() {
 
 /**
  * Implements hook_admin_menu_map() on behalf of Field UI module.
+ *
+ * @todo Figure out how to fix the comment entity bundle mappings.
  */
 function field_ui_admin_menu_map() {
   $map = array();
@@ -87,7 +89,7 @@ function field_ui_admin_menu_map() {
         $argument = array();
         if (isset($bundle_info['admin']['bundle argument'])) {
           $bundle_arg = arg($bundle_info['admin']['bundle argument'], $path);
-          $argument[$bundle_arg] = $bundle;
+          $argument[$bundle_arg] = array($bundle);
         }
         $argument['%field_ui_menu'] = array_keys($fields);
 
